@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { LockKeyhole, UserRound, Users } from "lucide-react"
+import { UserRound, Users } from "lucide-react"
+import { PasswordInput } from "../../components/PasswordInput"
 import { supabase } from "../../supabase"
 
 export default function UsuariosLoginPage() {
@@ -84,21 +85,14 @@ export default function UsuariosLoginPage() {
             </div>
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-900">Contrasena</label>
-            <div className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3">
-              <LockKeyhole className="h-5 w-5 text-slate-400" />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full outline-none"
-                placeholder="********"
-                autoComplete="current-password"
-                required
-              />
-            </div>
-          </div>
+          <PasswordInput
+            label="Contrasena"
+            value={password}
+            onChange={setPassword}
+            placeholder="********"
+            autoComplete="current-password"
+            required
+          />
 
           <button
             type="submit"

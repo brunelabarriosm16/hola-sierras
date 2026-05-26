@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { Link2, Mail, Plus, Search, UserRound, X } from "lucide-react"
+import { PasswordInput } from "../../components/PasswordInput"
 import { supabase } from "../../supabase"
 import { getAdminSession } from "../../lib/adminAuth"
 import { logAdminActivity } from "../../lib/adminActivity"
@@ -257,19 +258,16 @@ export default function AdminUsuariosPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-900">Contrasena</label>
-                  <input
-                    type="text"
-                    value={formData.password}
-                    onChange={(event) =>
-                      setFormData((current) => ({ ...current, password: event.target.value }))
-                    }
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none"
-                    required
-                    minLength={6}
-                  />
-                </div>
+                <PasswordInput
+                  label="Contrasena"
+                  value={formData.password}
+                  onChange={(value) =>
+                    setFormData((current) => ({ ...current, password: value }))
+                  }
+                  autoComplete="new-password"
+                  required
+                  minLength={6}
+                />
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -324,20 +322,15 @@ export default function AdminUsuariosPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-900">
-                  Confirma con tu contrasena de admin
-                </label>
-                <input
-                  type="password"
-                  value={formData.adminPassword}
-                  onChange={(event) =>
-                    setFormData((current) => ({ ...current, adminPassword: event.target.value }))
-                  }
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none"
-                  required
-                />
-              </div>
+              <PasswordInput
+                label="Confirma con tu contrasena de admin"
+                value={formData.adminPassword}
+                onChange={(value) =>
+                  setFormData((current) => ({ ...current, adminPassword: value }))
+                }
+                autoComplete="current-password"
+                required
+              />
 
               <div className="flex gap-3 pt-2">
                 <button

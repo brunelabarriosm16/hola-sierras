@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { AuthFormStatus } from "../../components/AuthFormStatus"
+import { PasswordInput } from "../../components/PasswordInput"
 import { supabase } from "../../supabase"
 
 export default function UsuariosContrasenaPage() {
@@ -126,26 +127,29 @@ export default function UsuariosContrasenaPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
-              <Field
+              <PasswordInput
                 label="Contrasena actual"
-                type="password"
                 value={currentPassword}
                 onChange={setCurrentPassword}
                 autoComplete="current-password"
+                required
+                inputClassName="w-full outline-none"
               />
-              <Field
+              <PasswordInput
                 label="Nueva contrasena"
-                type="password"
                 value={newPassword}
                 onChange={setNewPassword}
                 autoComplete="new-password"
+                required
+                inputClassName="w-full outline-none"
               />
-              <Field
+              <PasswordInput
                 label="Confirmar nueva contrasena"
-                type="password"
                 value={confirmPassword}
                 onChange={setConfirmPassword}
                 autoComplete="new-password"
+                required
+                inputClassName="w-full outline-none"
               />
 
               {error ? <AuthFormStatus tone="error" message={error} /> : null}
@@ -163,33 +167,5 @@ export default function UsuariosContrasenaPage() {
         </section>
       </div>
     </main>
-  )
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  autoComplete,
-  type,
-}: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-  autoComplete: string
-  type: string
-}) {
-  return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-slate-700">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        autoComplete={autoComplete}
-        required
-        className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-400"
-      />
-    </div>
   )
 }

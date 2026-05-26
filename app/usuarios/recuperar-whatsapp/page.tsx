@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
-import { MessageCircleMore, ShieldCheck } from "lucide-react"
+import { Eye, EyeOff, MessageCircleMore, ShieldCheck } from "lucide-react"
 import { AuthFormStatus } from "../../components/AuthFormStatus"
 
 type RecoveryStep = "start" | "code" | "reset" | "done"
@@ -344,18 +344,34 @@ function Field({
   type: string
   placeholder: string
 }) {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const isPassword = type === "password"
+
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-slate-700">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        autoComplete={autoComplete}
-        required
-        placeholder={placeholder}
-        className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-400"
-      />
+      <div className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 transition focus-within:border-blue-400">
+        <input
+          type={isPassword && isPasswordVisible ? "text" : type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          autoComplete={autoComplete}
+          required
+          placeholder={placeholder}
+          className="w-full outline-none"
+        />
+        {isPassword ? (
+          <button
+            type="button"
+            onClick={() => setIsPasswordVisible((current) => !current)}
+            className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            aria-label={isPasswordVisible ? "Ocultar contrasena" : "Mostrar contrasena"}
+            title={isPasswordVisible ? "Ocultar contrasena" : "Mostrar contrasena"}
+          >
+            {isPasswordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+          </button>
+        ) : null}
+      </div>
     </div>
   )
 }
