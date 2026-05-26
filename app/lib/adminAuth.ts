@@ -1,4 +1,5 @@
 export const ADMIN_SESSION_KEY = "guia-varela-admin-session"
+export const ADMIN_SESSION_CHANGE_EVENT = "admin-session-change"
 
 export const ADMIN_DEFAULT_CREDENTIALS = {
   username: "admin",
@@ -38,8 +39,10 @@ export function getAdminSession(): AdminSession | null {
 
 export function saveAdminSession(session: AdminSession) {
   window.localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session))
+  window.dispatchEvent(new Event(ADMIN_SESSION_CHANGE_EVENT))
 }
 
 export function clearAdminSession() {
   window.localStorage.removeItem(ADMIN_SESSION_KEY)
+  window.dispatchEvent(new Event(ADMIN_SESSION_CHANGE_EVENT))
 }

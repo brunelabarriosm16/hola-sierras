@@ -24,8 +24,10 @@ import {
   X,
 } from "lucide-react"
 import {
+  ADMIN_SESSION_CHANGE_EVENT,
   clearAdminSession,
   getAdminSession,
+  type AdminSession,
   type AdminRole,
 } from "../lib/adminAuth"
 
@@ -85,13 +87,14 @@ export default function AdminLayout({
   const router = useRouter()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [menuSearch, setMenuSearch] = useState("")
+  const [session, setSession] = useState<AdminSession | null>(null)
+  const [hasCheckedSession, setHasCheckedSession] = useState(false)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     panel: true,
     contenido: true,
     gestion: true,
     configuracion: true,
   })
-  const session = getAdminSession()
   const adminRole: AdminRole = session?.role || "admin"
   const adminName = session?.name || ""
   const isLoginPage = pathname === "/admin/login" || pathname === "/admin/loginV"
@@ -120,6 +123,24 @@ export default function AdminLayout({
     .filter((group) => group.items.length > 0)
 
   useEffect(() => {
+    const syncSession = () => {
+      setSession(getAdminSession())
+      setHasCheckedSession(true)
+    }
+
+    syncSession()
+    window.addEventListener(ADMIN_SESSION_CHANGE_EVENT, syncSession)
+    window.addEventListener("storage", syncSession)
+
+    return () => {
+      window.removeEventListener(ADMIN_SESSION_CHANGE_EVENT, syncSession)
+      window.removeEventListener("storage", syncSession)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!hasCheckedSession) return
+
     if (shouldRedirectToLogin) {
       router.replace("/admin/login")
       return
@@ -133,9 +154,20 @@ export default function AdminLayout({
     if (shouldRedirectByRole) {
       router.replace("/admin")
     }
-  }, [router, shouldRedirectByRole, shouldRedirectToDashboard, shouldRedirectToLogin])
+  }, [
+    hasCheckedSession,
+    router,
+    shouldRedirectByRole,
+    shouldRedirectToDashboard,
+    shouldRedirectToLogin,
+  ])
 
-  if (shouldRedirectToLogin || shouldRedirectToDashboard || shouldRedirectByRole) {
+  if (
+    !hasCheckedSession ||
+    shouldRedirectToLogin ||
+    shouldRedirectToDashboard ||
+    shouldRedirectByRole
+  ) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-100">
         <div className="rounded-2xl border border-slate-200 bg-white px-6 py-4 text-slate-600 shadow-sm">
