@@ -28,9 +28,10 @@ function resolveTable(ownerType: OwnerType) {
 
 async function validateAdminCredentials(username: string, password: string) {
   const supabaseAdmin = getSupabaseAdmin()
+  const normalizedUsername = username.trim()
 
   if (
-    username === ADMIN_DEFAULT_CREDENTIALS.username &&
+    normalizedUsername.toLowerCase() === ADMIN_DEFAULT_CREDENTIALS.username &&
     password === ADMIN_DEFAULT_CREDENTIALS.password
   ) {
     return { valid: true }
@@ -39,7 +40,7 @@ async function validateAdminCredentials(username: string, password: string) {
   const { data, error } = await supabaseAdmin
     .from("administradores")
     .select("usuario, contrasena, activo")
-    .eq("usuario", username)
+    .ilike("usuario", normalizedUsername)
     .eq("activo", true)
     .maybeSingle()
 

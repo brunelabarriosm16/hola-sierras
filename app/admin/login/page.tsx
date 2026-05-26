@@ -22,8 +22,10 @@ export default function AdminLoginPage() {
     setError("")
     setLoading(true)
 
+    const normalizedUsername = username.trim()
+
     if (
-      username === ADMIN_DEFAULT_CREDENTIALS.username &&
+      normalizedUsername.toLowerCase() === ADMIN_DEFAULT_CREDENTIALS.username &&
       password === ADMIN_DEFAULT_CREDENTIALS.password
     ) {
       saveAdminSession({
@@ -38,7 +40,7 @@ export default function AdminLoginPage() {
     const { data, error } = await supabase
       .from("administradores")
       .select("usuario, nombre, contrasena, rol, activo")
-      .eq("usuario", username)
+      .ilike("usuario", normalizedUsername)
       .eq("activo", true)
       .maybeSingle()
 
