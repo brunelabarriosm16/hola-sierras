@@ -453,6 +453,9 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   const visibleInstituciones = useMemo(() => instituciones.slice(0, 10), [instituciones])
 
   const [weatherItems, setWeatherItems] = useState<WeatherData[]>(initialData.weather)
+  const [weatherStatus, setWeatherStatus] = useState<"loading" | "ready" | "unavailable">(
+    initialData.weather.length > 0 ? "ready" : "loading"
+  )
 
   useEffect(() => {
     if (shouldLoadEventLikes) return
@@ -498,9 +501,17 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         const nextWeatherItems = await fetchWeatherItems()
         if (isMounted && nextWeatherItems.length > 0) {
           setWeatherItems(nextWeatherItems)
+          setWeatherStatus("ready")
+          return
+        }
+
+        if (isMounted) {
+          setWeatherStatus("unavailable")
         }
       } catch {
-        // El clima es informativo; si la API falla mantenemos el render disponible.
+        if (isMounted) {
+          setWeatherStatus("unavailable")
+        }
       }
     }
 
@@ -1539,19 +1550,19 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         </div>
       </section>
 
-      {weatherItems.length > 0 && (
-        <section className="py-6">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="rounded-[28px] border border-emerald-900/10 bg-[#fbf8f1]/92 p-6 shadow-[0_18px_45px_-30px_rgba(66,95,74,0.18)] backdrop-blur">
-              <div className="mb-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-800">
-                  Estado del tiempo
-                </p>
-                <h2 className="mt-1 text-2xl font-semibold text-slate-900">
-                  Clima en Mariscala y Aiguá
-                </h2>
-              </div>
+      <section className="py-6">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-[28px] border border-emerald-900/10 bg-[#fbf8f1]/92 p-6 shadow-[0_18px_45px_-30px_rgba(66,95,74,0.18)] backdrop-blur">
+            <div className="mb-5">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-800">
+                Estado del tiempo
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold text-slate-900">
+                Clima en Mariscala y Aiguá
+              </h2>
+            </div>
 
+            {weatherItems.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2">
                 {weatherItems.map((weatherItem) => {
                   const WeatherIcon = getWeatherIcon(weatherItem.weatherCode)
@@ -1590,10 +1601,33 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                   )
                 })}
               </div>
-            </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {WEATHER_LOCATIONS.map((location) => (
+                  <div
+                    key={location.name}
+                    className="grid gap-4 rounded-[24px] border border-emerald-900/10 bg-[#f1f5ee]/95 p-5 md:grid-cols-[auto_1fr] md:items-center"
+                  >
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#fffdf8] text-emerald-700">
+                      <CloudSun className="h-8 w-8" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-slate-900">
+                        {location.name}
+                      </h3>
+                      <p className="mt-2 text-base text-slate-600">
+                        {weatherStatus === "loading"
+                          ? "Cargando estado del tiempo..."
+                          : "Estado del tiempo no disponible por el momento."}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       <div className="flex flex-col">
       <section id="comercios" className="order-5 py-10">
