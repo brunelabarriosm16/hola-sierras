@@ -204,6 +204,40 @@ const WEATHER_LABELS: Record<number, string> = {
   95: "Tormenta",
 }
 
+const WEATHER_LOCATIONS = [
+  { name: "Mariscala", latitude: -34.04085, longitude: -54.77732 },
+  { name: "Aiguá", latitude: -34.20498, longitude: -54.75665 },
+] as const
+
+async function fetchWeatherItems() {
+  const results = await Promise.all(
+    WEATHER_LOCATIONS.map(async (location) => {
+      const response = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=America%2FMontevideo&forecast_days=1`
+      )
+
+      if (!response.ok) return null
+
+      const data = await response.json()
+
+      if (!data?.current || !data?.daily) return null
+
+      const weather: WeatherData = {
+        location: location.name,
+        temperature: data.current.temperature_2m,
+        weatherCode: data.current.weather_code,
+        tempMax: data.daily.temperature_2m_max?.[0] ?? data.current.temperature_2m,
+        tempMin: data.daily.temperature_2m_min?.[0] ?? data.current.temperature_2m,
+        windSpeed: data.current.wind_speed_10m ?? 0,
+      }
+
+      return weather
+    })
+  )
+
+  return results.filter((item): item is WeatherData => item !== null)
+}
+
 type WelcomeHighlight = {
   key: string
   kind: "comercio" | "servicio" | "curso"
@@ -418,7 +452,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   const visibleCursos = useMemo(() => cursos.slice(0, 8), [cursos])
   const visibleInstituciones = useMemo(() => instituciones.slice(0, 10), [instituciones])
 
-  const weatherItems = initialData.weather
+  const [weatherItems, setWeatherItems] = useState<WeatherData[]>(initialData.weather)
 
   useEffect(() => {
     if (shouldLoadEventLikes) return
@@ -455,6 +489,27 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
 
     void loadEventLikes()
   }, [eventos, shouldLoadEventLikes])
+
+  useEffect(() => {
+    let isMounted = true
+
+    const refreshWeather = async () => {
+      try {
+        const nextWeatherItems = await fetchWeatherItems()
+        if (isMounted && nextWeatherItems.length > 0) {
+          setWeatherItems(nextWeatherItems)
+        }
+      } catch {
+        // El clima es informativo; si la API falla mantenemos el render disponible.
+      }
+    }
+
+    void refreshWeather()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     if (!WELCOME_PROMOTION_ENABLED) return
