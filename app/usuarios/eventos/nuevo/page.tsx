@@ -41,6 +41,16 @@ type EventForm = {
 
 const categoriasEvento = ["Evento", "Promocion", "Sorteo", "Beneficio", "Consulta"]
 
+const isMissingRelatedEntityColumn = (message: string) =>
+  message.includes("related_entity_id") || message.includes("related_entity_type")
+
+const stripRelatedEntityFields = (payload: Record<string, unknown>) => {
+  const nextPayload = { ...payload }
+  delete nextPayload.related_entity_type
+  delete nextPayload.related_entity_id
+  return nextPayload
+}
+
 const initialForm: EventForm = {
   titulo: "",
   categoria: "Evento",
@@ -297,7 +307,7 @@ export default function UsuariosNuevoEventoPage() {
 
     setSaving(true)
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       titulo: formData.titulo.trim(),
       categoria: formData.categoria,
       fecha: startDate,
@@ -318,19 +328,28 @@ export default function UsuariosNuevoEventoPage() {
       estado: "borrador",
       usa_whatsapp: formData.usaWhatsapp,
       owner_email: publicMode ? null : ownerEmail,
-      related_entity_type:
-        !publicMode && formData.categoria === "Sorteo" ? formData.relatedEntityType : null,
-      related_entity_id:
-        !publicMode && formData.categoria === "Sorteo" && formData.relatedEntityId
-          ? Number(formData.relatedEntityId)
-          : null,
     }
 
-    const eventMutation = editingEventId
-      ? supabase.from("eventos").update(payload).eq("id", editingEventId).eq("owner_email", ownerEmail)
-      : supabase.from("eventos").insert([payload])
+    if (!publicMode && formData.categoria === "Sorteo") {
+      payload.related_entity_type = formData.relatedEntityType
+      payload.related_entity_id = Number(formData.relatedEntityId)
+    }
 
-    const { error: saveError } = await eventMutation
+    const saveEvent = (eventPayload: Record<string, unknown>) =>
+      editingEventId
+        ? supabase
+            .from("eventos")
+            .update(eventPayload)
+            .eq("id", editingEventId)
+            .eq("owner_email", ownerEmail)
+        : supabase.from("eventos").insert([eventPayload])
+
+    let { error: saveError } = await saveEvent(payload)
+
+    if (saveError && isMissingRelatedEntityColumn(saveError.message)) {
+      const retry = await saveEvent(stripRelatedEntityFields(payload))
+      saveError = retry.error
+    }
 
     if (saveError) {
       setError(`No pudimos guardar el evento: ${saveError.message}`)

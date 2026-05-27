@@ -33,7 +33,7 @@ export default async function ServicioSharePage({
   const today = new Date().toISOString().slice(0, 10)
   const { data: relatedEventsRaw } = await supabaseServer
     .from("eventos")
-    .select("id, titulo, categoria, fecha, fecha_fin, fecha_solo_mes, descripcion, imagen, owner_email, related_entity_type, related_entity_id")
+    .select("*")
     .eq("estado", "activo")
     .or(buildActiveEventsFilter(today))
     .order("fecha", { ascending: true })

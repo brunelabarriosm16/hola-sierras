@@ -23,32 +23,56 @@ export default async function Page() {
     { name: "Aiguá", latitude: -34.20498, longitude: -54.75665 },
   ] as const
 
-  const weatherPromise = Promise.all(
+  const weatherPromise = Promise.all<WeatherData | null>(
     weatherLocations.map(async (location) => {
-      const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=America%2FMontevideo&forecast_days=1`,
-        {
-          next: { revalidate: 3600 },
-        }
-      )
+      try {
+        const response = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=America%2FMontevideo&forecast_days=1`,
+          {
+            next: { revalidate: 3600 },
+          }
+        )
 
-      if (!response.ok) return null
+        if (response.ok) {
+          const data = await response.json()
 
-      const data = await response.json()
-
-      const weather: WeatherData | null =
-        data?.current && data?.daily
-          ? {
+          if (data?.current && data?.daily) {
+            return {
               location: location.name,
               temperature: data.current.temperature_2m,
               weatherCode: data.current.weather_code,
               tempMax: data.daily.temperature_2m_max?.[0] ?? data.current.temperature_2m,
               tempMin: data.daily.temperature_2m_min?.[0] ?? data.current.temperature_2m,
               windSpeed: data.current.wind_speed_10m ?? 0,
-            }
-          : null
+            } satisfies WeatherData
+          }
+        }
 
-      return weather
+        const fallbackResponse = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current_weather=true&timezone=America%2FMontevideo`,
+          {
+            next: { revalidate: 1800 },
+          }
+        )
+
+        if (!fallbackResponse.ok) return null
+
+        const fallbackData = await fallbackResponse.json()
+        const currentWeather = fallbackData?.current_weather
+
+        if (!currentWeather) return null
+
+        return {
+          location: location.name,
+          temperature: currentWeather.temperature,
+          weatherCode: currentWeather.weathercode,
+          tempMax: currentWeather.temperature,
+          tempMin: currentWeather.temperature,
+          windSpeed: currentWeather.windspeed ?? 0,
+        } satisfies WeatherData
+      } catch {
+        return null
+      }
     })
   )
     .then((results) => results.filter((item): item is WeatherData => item !== null))

@@ -86,6 +86,16 @@ const normalizeAdminEventCategory = (categoria?: string | null) => {
 
 const categoriasEvento = ["Evento", "Promocion", "Sorteo", "Beneficio", "Consulta"]
 
+const isMissingRelatedEntityColumn = (message: string) =>
+  message.includes("related_entity_id") || message.includes("related_entity_type")
+
+const stripRelatedEntityFields = (payload: Record<string, unknown>) => {
+  const nextPayload = { ...payload }
+  delete nextPayload.related_entity_type
+  delete nextPayload.related_entity_id
+  return nextPayload
+}
+
 export default function AdminEventosPage() {
   const [eventos, setEventos] = useState<Evento[]>([])
   const [activeTab, setActiveTab] = useState<"vigentes" | "pasados" | "borradores">("vigentes")
@@ -287,7 +297,7 @@ export default function AdminEventosPage() {
     setLoading(true)
     setSaveError("")
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       titulo: `${evento.titulo} (copia)`,
       categoria: normalizeAdminEventCategory(evento.categoria),
       fecha: evento.fecha,
@@ -303,11 +313,19 @@ export default function AdminEventosPage() {
       estado: "borrador",
       usa_whatsapp: evento.usa_whatsapp ?? true,
       owner_email: evento.owner_email || null,
-      related_entity_type: evento.related_entity_type || null,
-      related_entity_id: evento.related_entity_id || null,
     }
 
-    const { error } = await supabase.from("eventos").insert([payload])
+    if (evento.related_entity_type && evento.related_entity_id) {
+      payload.related_entity_type = evento.related_entity_type
+      payload.related_entity_id = evento.related_entity_id
+    }
+
+    let { error } = await supabase.from("eventos").insert([payload])
+
+    if (error && isMissingRelatedEntityColumn(error.message)) {
+      const retry = await supabase.from("eventos").insert([stripRelatedEntityFields(payload)])
+      error = retry.error
+    }
 
     if (error) {
       setSaveError(`Error al duplicar evento: ${error.message}`)
@@ -423,7 +441,7 @@ export default function AdminEventosPage() {
       return
     }
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       titulo: formData.titulo,
       categoria: formData.categoria,
       fecha: startDate,
@@ -441,24 +459,32 @@ export default function AdminEventosPage() {
           : null
       ),
       imagen: formData.imagen || null,
-        estado: isDraft
-          ? "borrador"
-          : editingEvento?.estado === "oculto"
-            ? "oculto"
-            : "activo",
-        usa_whatsapp: hasPhone ? formData.usaWhatsapp : false,
-        related_entity_type: formData.categoria === "Sorteo" ? formData.relatedEntityType : null,
-        related_entity_id:
-          formData.categoria === "Sorteo" && formData.relatedEntityId
-            ? Number(formData.relatedEntityId)
-            : null,
-      }
+      estado: isDraft
+        ? "borrador"
+        : editingEvento?.estado === "oculto"
+          ? "oculto"
+          : "activo",
+      usa_whatsapp: hasPhone ? formData.usaWhatsapp : false,
+    }
+
+    if (formData.categoria === "Sorteo") {
+      payload.related_entity_type = formData.relatedEntityType
+      payload.related_entity_id = Number(formData.relatedEntityId)
+    }
 
     if (editingEvento) {
-      const { error } = await supabase
+      let { error } = await supabase
         .from("eventos")
         .update(payload)
         .eq("id", editingEvento.id)
+
+      if (error && isMissingRelatedEntityColumn(error.message)) {
+        const retry = await supabase
+          .from("eventos")
+          .update(stripRelatedEntityFields(payload))
+          .eq("id", editingEvento.id)
+        error = retry.error
+      }
 
       if (error) {
         setSaveError(`Error al actualizar evento: ${error.message}`)
@@ -472,7 +498,12 @@ export default function AdminEventosPage() {
         target: formData.titulo || "Sin titulo",
       })
     } else {
-      const { error } = await supabase.from("eventos").insert([payload])
+      let { error } = await supabase.from("eventos").insert([payload])
+
+      if (error && isMissingRelatedEntityColumn(error.message)) {
+        const retry = await supabase.from("eventos").insert([stripRelatedEntityFields(payload)])
+        error = retry.error
+      }
 
       if (error) {
         setSaveError(`Error al guardar evento: ${error.message}`)

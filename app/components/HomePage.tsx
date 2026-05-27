@@ -210,28 +210,50 @@ const WEATHER_LOCATIONS = [
 ] as const
 
 async function fetchWeatherItems() {
-  const results = await Promise.all(
+  const results: Array<WeatherData | null> = await Promise.all(
     WEATHER_LOCATIONS.map(async (location) => {
-      const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=America%2FMontevideo&forecast_days=1`
-      )
+      try {
+        const response = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=America%2FMontevideo&forecast_days=1`
+        )
 
-      if (!response.ok) return null
+        if (response.ok) {
+          const data = await response.json()
 
-      const data = await response.json()
+          if (data?.current && data?.daily) {
+            return {
+              location: location.name,
+              temperature: data.current.temperature_2m,
+              weatherCode: data.current.weather_code,
+              tempMax: data.daily.temperature_2m_max?.[0] ?? data.current.temperature_2m,
+              tempMin: data.daily.temperature_2m_min?.[0] ?? data.current.temperature_2m,
+              windSpeed: data.current.wind_speed_10m ?? 0,
+            } satisfies WeatherData
+          }
+        }
 
-      if (!data?.current || !data?.daily) return null
+        const fallbackResponse = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current_weather=true&timezone=America%2FMontevideo`
+        )
 
-      const weather: WeatherData = {
-        location: location.name,
-        temperature: data.current.temperature_2m,
-        weatherCode: data.current.weather_code,
-        tempMax: data.daily.temperature_2m_max?.[0] ?? data.current.temperature_2m,
-        tempMin: data.daily.temperature_2m_min?.[0] ?? data.current.temperature_2m,
-        windSpeed: data.current.wind_speed_10m ?? 0,
+        if (!fallbackResponse.ok) return null
+
+        const fallbackData = await fallbackResponse.json()
+        const currentWeather = fallbackData?.current_weather
+
+        if (!currentWeather) return null
+
+        return {
+          location: location.name,
+          temperature: currentWeather.temperature,
+          weatherCode: currentWeather.weathercode,
+          tempMax: currentWeather.temperature,
+          tempMin: currentWeather.temperature,
+          windSpeed: currentWeather.windspeed ?? 0,
+        } satisfies WeatherData
+      } catch {
+        return null
       }
-
-      return weather
     })
   )
 
