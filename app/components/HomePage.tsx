@@ -361,14 +361,14 @@ const SOCIAL_LINKS = [
   {
     id: "instagram",
     label: "Instagram",
-    href: "https://www.instagram.com/hola.varela?igsh=MTRwczl1aGI0MTEzaw==",
+    href: "https://www.instagram.com/hola.sierras/",
     className:
       "border-pink-100 bg-[linear-gradient(135deg,#fff1f7_0%,#f5ecff_100%)] text-pink-700 hover:border-pink-200 hover:text-pink-800",
   },
   {
     id: "facebook",
     label: "Facebook",
-    href: "https://www.facebook.com/share/1HZBYuVRC3/",
+    href: "https://www.facebook.com/profile.php?id=61590474178915",
     className:
       "border-blue-100 bg-[linear-gradient(135deg,#eef5ff_0%,#f3f8ff_100%)] text-blue-700 hover:border-blue-200 hover:text-blue-800",
   },
