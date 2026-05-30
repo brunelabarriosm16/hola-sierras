@@ -335,12 +335,12 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
                 className="cursor-pointer rounded-xl border border-gray-200 p-5 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
               >
                 {evento.imagen && (
-                  <div className="relative mb-4 h-48 w-full overflow-hidden rounded-lg">
+                  <div className="relative mb-4 h-48 w-full overflow-hidden rounded-lg bg-slate-50">
                     <OptimizedImage
                       src={evento.imagen}
                       alt={evento.titulo}
                       sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
-                      className="object-cover"
+                      className="object-contain p-3"
                     />
                   </div>
                 )}

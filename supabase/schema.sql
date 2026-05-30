@@ -482,3 +482,73 @@ using (
       and public.eventos.owner_email = auth.jwt() ->> 'email'
   )
 );
+
+create index if not exists comercios_estado_id_idx
+on public.comercios (estado, id desc);
+
+create index if not exists comercios_destacado_id_idx
+on public.comercios (destacado, id desc);
+
+create index if not exists comercios_plan_suscripcion_id_idx
+on public.comercios (plan_suscripcion, id desc);
+
+create index if not exists servicios_estado_id_idx
+on public.servicios (estado, id desc);
+
+create index if not exists servicios_destacado_id_idx
+on public.servicios (destacado, id desc);
+
+create index if not exists servicios_plan_suscripcion_id_idx
+on public.servicios (plan_suscripcion, id desc);
+
+create index if not exists cursos_estado_id_idx
+on public.cursos (estado, id desc);
+
+create index if not exists cursos_destacado_id_idx
+on public.cursos (destacado, id desc);
+
+create index if not exists instituciones_estado_id_idx
+on public.instituciones (estado, id desc);
+
+create index if not exists eventos_estado_fecha_idx
+on public.eventos (estado, fecha, fecha_fin);
+
+create index if not exists eventos_related_entity_idx
+on public.eventos (related_entity_type, related_entity_id, fecha);
+
+create index if not exists eventos_owner_unlinked_idx
+on public.eventos (owner_email, fecha)
+where related_entity_type is null and related_entity_id is null;
+
+create index if not exists content_visits_created_at_idx
+on public.content_visits (created_at desc);
+
+create index if not exists content_visits_section_created_at_idx
+on public.content_visits (section, created_at desc);
+
+create index if not exists share_events_created_at_idx
+on public.share_events (created_at desc);
+
+create index if not exists share_events_section_item_idx
+on public.share_events (section, item_id);
+
+create index if not exists whatsapp_clicks_created_at_idx
+on public.whatsapp_clicks (created_at desc);
+
+create index if not exists whatsapp_clicks_section_item_idx
+on public.whatsapp_clicks (section, item_id);
+
+create index if not exists view_more_clicks_created_at_idx
+on public.view_more_clicks (created_at desc);
+
+create index if not exists view_more_clicks_section_item_idx
+on public.view_more_clicks (section, item_id);
+
+create index if not exists external_link_clicks_created_at_idx
+on public.external_link_clicks (created_at desc);
+
+create index if not exists external_link_clicks_section_item_idx
+on public.external_link_clicks (section, item_id);
+
+create index if not exists event_likes_created_at_idx
+on public.event_likes (created_at desc);

@@ -31,23 +31,34 @@ export default async function ComercioSharePage({
   }
 
   const today = new Date().toISOString().slice(0, 10)
-  const { data: relatedEventsRaw } = await supabaseServer
-    .from("eventos")
-    .select("*")
-    .eq("estado", "activo")
-    .or(buildActiveEventsFilter(today))
-    .order("fecha", { ascending: true })
+  const relatedEventSelect =
+    "id, titulo, categoria, fecha, fecha_fin, fecha_solo_mes, descripcion, imagen, related_entity_type, related_entity_id, owner_email"
+  const [explicitRelatedEvents, legacyRelatedEvents] = await Promise.all([
+    supabaseServer
+      .from("eventos")
+      .select(relatedEventSelect)
+      .eq("estado", "activo")
+      .eq("related_entity_type", "comercio")
+      .eq("related_entity_id", data.id)
+      .or(buildActiveEventsFilter(today))
+      .order("fecha", { ascending: true }),
+    data.owner_email
+      ? supabaseServer
+          .from("eventos")
+          .select(relatedEventSelect)
+          .eq("estado", "activo")
+          .is("related_entity_type", null)
+          .is("related_entity_id", null)
+          .eq("owner_email", data.owner_email)
+          .or(buildActiveEventsFilter(today))
+          .order("fecha", { ascending: true })
+      : Promise.resolve({ data: [] }),
+  ])
 
-  const relatedEvents = (relatedEventsRaw || []).filter((event) => {
-    const explicitlyLinked =
-      event.related_entity_type === "comercio" && event.related_entity_id === data.id
-    const legacyLinked =
-      !event.related_entity_type && !event.related_entity_id && data.owner_email
-        ? event.owner_email === data.owner_email
-        : false
-
-    return explicitlyLinked || legacyLinked
-  })
+  const relatedEvents = [
+    ...(explicitRelatedEvents.data || []),
+    ...(legacyRelatedEvents.data || []),
+  ]
 
   return (
     <PremiumListingPage

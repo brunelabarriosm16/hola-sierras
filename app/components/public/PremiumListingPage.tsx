@@ -209,7 +209,7 @@ export function PremiumListingPage({
                           src={image}
                           alt={`${title} ${index + 1}`}
                           sizes="(max-width: 768px) 50vw, 25vw"
-                          className="object-cover"
+                          className="object-contain p-2"
                         />
                       </button>
                     ))}
@@ -342,7 +342,7 @@ export function PremiumListingPage({
                             src={image}
                             alt={`${premiumExtraTitle || title} ${index + 1}`}
                             sizes="(max-width: 768px) 50vw, 33vw"
-                            className="object-cover"
+                            className="object-contain p-2"
                           />
                         </button>
                       ))}
@@ -384,12 +384,12 @@ export function PremiumListingPage({
               {relatedEvents.map((event) => (
                 <article key={event.id} className="overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] shadow-sm">
                   {event.imagen ? (
-                    <div className="relative h-48 w-full">
+                    <div className="relative h-48 w-full bg-slate-50">
                       <OptimizedImage
                         src={event.imagen}
                         alt={event.titulo}
                         sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                        className="object-cover"
+                        className="object-contain p-3"
                       />
                     </div>
                   ) : (

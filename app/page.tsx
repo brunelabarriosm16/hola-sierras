@@ -1,6 +1,7 @@
 import { HomePage, type HomePageData, type WeatherData } from "./components/HomePage"
 import { buildActiveEventsFilter } from "./lib/eventDates"
 import { supabaseServer } from "./lib/supabaseServer"
+import { unstable_cache } from "next/cache"
 
 export const revalidate = 3600
 export const fetchCache = "default-cache"
@@ -16,8 +17,74 @@ const defaultSobreVarela = {
   imagen_url: null,
 }
 
+const getHomeSupabaseData = unstable_cache(
+  async () => {
+    const today = new Date().toISOString().slice(0, 10)
+
+    const [
+      { data: featuredBusinesses },
+      { data: eventosData },
+      { data: cursos },
+      { data: servicios },
+      { data: instituciones },
+      { data: sobreVarelaData },
+    ] = await Promise.all([
+      supabaseServer
+        .from("comercios")
+        .select("id, nombre, descripcion, premium_detalle, premium_galeria, premium_activo, direccion, telefono, web_url, instagram_url, facebook_url, imagen, imagen_url, destacado, plan_suscripcion, usa_whatsapp")
+        .or("estado.is.null,estado.eq.activo")
+        .or("destacado.eq.true,plan_suscripcion.eq.destacado,plan_suscripcion.eq.destacado_plus")
+        .order("id", { ascending: false })
+        .limit(48),
+      supabaseServer
+        .from("eventos")
+        .select("id, titulo, categoria, descripcion, fecha, fecha_fin, fecha_solo_mes, ubicacion, telefono, web_url, instagram_url, facebook_url, imagen, estado, usa_whatsapp")
+        .or("estado.is.null,estado.eq.activo")
+        .or(buildActiveEventsFilter(today))
+        .order("fecha", { ascending: true }),
+      supabaseServer
+        .from("cursos")
+        .select("id, nombre, descripcion, responsable, contacto, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
+        .or("estado.is.null,estado.eq.activo")
+        .order("id", { ascending: false })
+        .limit(24),
+      supabaseServer
+        .from("servicios")
+        .select("id, nombre, categoria, descripcion, premium_detalle, premium_galeria, premium_activo, responsable, contacto, direccion, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
+        .or("estado.is.null,estado.eq.activo")
+        .order("id", { ascending: false })
+        .limit(48),
+      supabaseServer
+        .from("instituciones")
+        .select("id, nombre, descripcion, direccion, telefono, web_url, instagram_url, facebook_url, foto, usa_whatsapp")
+        .or("estado.is.null,estado.eq.activo")
+        .order("id", { ascending: false })
+        .limit(10),
+      supabaseServer
+        .from("sitio")
+        .select("titulo, texto_1, texto_2, texto_3, imagen_url")
+        .eq("id", 1)
+        .maybeSingle(),
+    ])
+
+    return {
+      featuredBusinesses: featuredBusinesses || [],
+      eventos: (eventosData || []).slice(0, 6),
+      cursos: (cursos || []).slice(0, 8),
+      servicios: servicios || [],
+      instituciones: instituciones || [],
+      allCursos: cursos || [],
+      allServicios: servicios || [],
+      sobreVarela: sobreVarelaData
+        ? { ...defaultSobreVarela, ...sobreVarelaData }
+        : defaultSobreVarela,
+    } satisfies Omit<HomePageData, "weather">
+  },
+  ["home-supabase-data"],
+  { revalidate: 3600 }
+)
+
 export default async function Page() {
-  const today = new Date().toISOString().slice(0, 10)
   const weatherLocations = [
     { name: "Mariscala", latitude: -34.04085, longitude: -54.77732 },
     { name: "Aiguá", latitude: -34.20498, longitude: -54.75665 },
@@ -78,81 +145,10 @@ export default async function Page() {
     .then((results) => results.filter((item): item is WeatherData => item !== null))
     .catch(() => [])
 
-  const [
-    { data: featuredBusinesses },
-    { data: eventosData },
-    { data: cursos },
-    { data: servicios },
-    { data: highlightedServicios },
-    { data: highlightedCursos },
-    { data: instituciones },
-    { data: sobreVarelaData },
-    weather,
-  ] = await Promise.all([
-    supabaseServer
-      .from("comercios")
-      .select("id, nombre, descripcion, premium_detalle, premium_galeria, premium_activo, direccion, telefono, web_url, instagram_url, facebook_url, imagen, imagen_url, destacado, plan_suscripcion, usa_whatsapp")
-      .or("estado.is.null,estado.eq.activo")
-      .or("destacado.eq.true,plan_suscripcion.eq.destacado,plan_suscripcion.eq.destacado_plus")
-      .order("id", { ascending: false })
-      .limit(48),
-    supabaseServer
-      .from("eventos")
-      .select("id, titulo, categoria, descripcion, fecha, fecha_fin, fecha_solo_mes, ubicacion, telefono, web_url, instagram_url, facebook_url, imagen, estado, usa_whatsapp")
-      .or("estado.is.null,estado.eq.activo")
-      .or(buildActiveEventsFilter(today))
-      .order("fecha", { ascending: true }),
-    supabaseServer
-      .from("cursos")
-      .select("id, nombre, descripcion, responsable, contacto, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
-      .or("estado.is.null,estado.eq.activo")
-      .order("id", { ascending: false })
-      .limit(8),
-    supabaseServer
-      .from("servicios")
-      .select("id, nombre, categoria, descripcion, premium_detalle, premium_galeria, premium_activo, responsable, contacto, direccion, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
-      .or("estado.is.null,estado.eq.activo")
-      .order("id", { ascending: false })
-      .limit(48),
-    supabaseServer
-      .from("servicios")
-      .select("id, nombre, categoria, descripcion, premium_detalle, premium_galeria, premium_activo, responsable, contacto, direccion, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
-      .or("estado.is.null,estado.eq.activo")
-      .or("destacado.eq.true,plan_suscripcion.eq.destacado,plan_suscripcion.eq.destacado_plus")
-      .order("id", { ascending: false })
-      .limit(24),
-    supabaseServer
-      .from("cursos")
-      .select("id, nombre, descripcion, responsable, contacto, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
-      .or("estado.is.null,estado.eq.activo")
-      .eq("destacado", true)
-      .order("id", { ascending: false })
-      .limit(12),
-    supabaseServer
-      .from("instituciones")
-      .select("id, nombre, descripcion, direccion, telefono, web_url, instagram_url, facebook_url, foto, usa_whatsapp")
-      .or("estado.is.null,estado.eq.activo")
-      .order("id", { ascending: false })
-      .limit(10),
-    supabaseServer
-      .from("sitio")
-      .select("titulo, texto_1, texto_2, texto_3, imagen_url")
-      .eq("id", 1)
-      .maybeSingle(),
-    weatherPromise,
-  ])
+  const [homeData, weather] = await Promise.all([getHomeSupabaseData(), weatherPromise])
 
   const initialData: HomePageData = {
-    featuredBusinesses: featuredBusinesses || [],
-    eventos: (eventosData || []).slice(0, 6),
-    cursos: cursos || [],
-    servicios: servicios || [],
-    instituciones: instituciones || [],
-    allCursos: highlightedCursos || cursos || [],
-    allServicios: highlightedServicios || servicios || [],
-    sobreVarela: sobreVarelaData
-      ? { ...defaultSobreVarela, ...sobreVarelaData }
-      : defaultSobreVarela,
+    ...homeData,
     weather,
   }
 

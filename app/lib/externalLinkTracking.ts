@@ -1,4 +1,5 @@
 import { supabase } from "../supabase"
+import { shouldRecordClientEvent } from "./trackingDedupe"
 
 export const EXTERNAL_LINK_SECTIONS = [
   "comercios",
@@ -35,6 +36,15 @@ export const recordExternalLinkClick = async (
   itemTitle: string | null | undefined,
   linkType: ExternalLinkType
 ) => {
+  if (
+    !shouldRecordClientEvent(`external:${section}:${itemId}:${linkType}`, {
+      storage: "session",
+      ttlMs: 10 * 1000,
+    })
+  ) {
+    return
+  }
+
   const { error } = await supabase.from("external_link_clicks").insert([
     {
       section,

@@ -162,12 +162,12 @@ export function ServiciosPageClient({
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {selectedServicio.premium_galeria.map((image, index) => (
-                      <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                      <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
                         <OptimizedImage
                           src={image}
                           alt={`${selectedServicio.nombre} ${index + 1}`}
                           sizes="(max-width: 768px) 50vw, 25vw"
-                          className="object-cover"
+                          className="object-contain p-2"
                         />
                       </div>
                     ))}
@@ -308,12 +308,12 @@ export function ServiciosPageClient({
                       className={`cursor-pointer overflow-hidden rounded-xl border shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${servicio.premium_activo ? "border-violet-200 bg-violet-50/20" : "border-gray-200"}`}
                     >
                       {servicio.imagen && (
-                        <div className="relative h-56 w-full">
+                        <div className="relative h-56 w-full bg-slate-50">
                           <OptimizedImage
                             src={servicio.imagen}
                             alt={servicio.nombre}
                             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
-                            className="object-cover"
+                            className="object-contain p-3"
                           />
                         </div>
                       )}

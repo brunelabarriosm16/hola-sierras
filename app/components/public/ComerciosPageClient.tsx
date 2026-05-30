@@ -152,12 +152,12 @@ export function ComerciosPageClient({
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {selectedComercio.premium_galeria.map((image, index) => (
-                      <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                      <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
                         <OptimizedImage
                           src={image}
                           alt={`${selectedComercio.nombre} ${index + 1}`}
                           sizes="(max-width: 768px) 50vw, 25vw"
-                          className="object-cover"
+                          className="object-contain p-2"
                         />
                       </div>
                     ))}
@@ -284,12 +284,12 @@ export function ComerciosPageClient({
                   className={`cursor-pointer rounded-xl border p-5 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${comercio.premium_activo ? "border-violet-200 bg-violet-50/20" : "border-gray-200"}`}
                 >
                   {imagenSrc && (
-                    <div className="relative mb-3 h-40 w-full overflow-hidden rounded-lg">
+                    <div className="relative mb-3 h-40 w-full overflow-hidden rounded-lg bg-slate-50">
                       <OptimizedImage
                         src={imagenSrc}
                         alt={comercio.nombre}
                         sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
-                        className="object-cover"
+                        className="object-contain p-3"
                       />
                     </div>
                   )}

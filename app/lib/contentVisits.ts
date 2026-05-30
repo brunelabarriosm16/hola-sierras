@@ -1,6 +1,7 @@
 'use client'
 
 import { supabase } from "../supabase"
+import { shouldRecordClientEvent } from "./trackingDedupe"
 
 export const CONTENT_VISIT_SECTIONS = [
   "comercios",
@@ -12,7 +13,8 @@ export const CONTENT_VISIT_SECTIONS = [
 ] as const
 
 const CONTENT_VISITS_BROWSER_KEY = "hola-varela-content-visits-browser"
-const SITE_VISITS_SESSION_PREFIX = "hola-varela-site-visit"
+const CONTENT_VISIT_TTL_MS = 30 * 60 * 1000
+const SITE_VISIT_TTL_MS = 6 * 60 * 60 * 1000
 
 export type ContentVisitSection = (typeof CONTENT_VISIT_SECTIONS)[number]
 
@@ -43,6 +45,14 @@ export const recordContentVisit = async (
   const browserKey = getContentVisitsBrowserKey()
 
   if (!browserKey) return
+  if (
+    !shouldRecordClientEvent(`content:${section}:${itemId}`, {
+      storage: "session",
+      ttlMs: CONTENT_VISIT_TTL_MS,
+    })
+  ) {
+    return
+  }
 
   const { error } = await supabase.from("content_visits").insert([
     {
@@ -63,11 +73,14 @@ export const recordSiteVisit = async (pageId: string, pageTitle?: string | null)
 
   const browserKey = getContentVisitsBrowserKey()
   if (!browserKey) return
-
-  const sessionKey = `${SITE_VISITS_SESSION_PREFIX}:${pageId}`
-  if (window.sessionStorage.getItem(sessionKey)) return
-
-  window.sessionStorage.setItem(sessionKey, "1")
+  if (
+    !shouldRecordClientEvent(`site:${pageId}`, {
+      storage: "local",
+      ttlMs: SITE_VISIT_TTL_MS,
+    })
+  ) {
+    return
+  }
 
   const { error } = await supabase.from("content_visits").insert([
     {

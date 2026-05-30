@@ -1,4 +1,5 @@
 import { supabase } from "../supabase"
+import { shouldRecordClientEvent } from "./trackingDedupe"
 
 export const WHATSAPP_SECTIONS = [
   "comercios",
@@ -26,6 +27,15 @@ export const recordWhatsappClick = async (
   itemId: string,
   itemTitle?: string | null
 ) => {
+  if (
+    !shouldRecordClientEvent(`whatsapp:${section}:${itemId}`, {
+      storage: "session",
+      ttlMs: 10 * 1000,
+    })
+  ) {
+    return
+  }
+
   const { error } = await supabase.from("whatsapp_clicks").insert([
     {
       section,

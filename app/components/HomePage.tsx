@@ -987,12 +987,12 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {selectedComercio.premium_galeria.map((image, index) => (
-                      <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                      <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
                         <OptimizedImage
                           src={image}
                           alt={`${selectedComercio.nombre} ${index + 1}`}
                           sizes="(max-width: 768px) 50vw, 25vw"
-                          className="object-cover"
+                          className="object-contain p-2"
                         />
                       </div>
                     ))}
@@ -1087,12 +1087,12 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {selectedServicio.premium_galeria.map((image, index) => (
-                      <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                      <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
                         <OptimizedImage
                           src={image}
                           alt={`${selectedServicio.nombre} ${index + 1}`}
                           sizes="(max-width: 768px) 50vw, 25vw"
-                          className="object-cover"
+                          className="object-contain p-2"
                         />
                       </div>
                     ))}
@@ -1721,12 +1721,12 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                   className={`w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[24px] border bg-white/90 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.5)] transition hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${business.premium_activo ? "border-violet-200 hover:shadow-[0_28px_60px_-30px_rgba(139,92,246,0.35)]" : "border-white/80 hover:shadow-[0_28px_60px_-30px_rgba(59,130,246,0.35)]"}`}
                 >
                   {imageSrc && (
-                    <div className="relative h-32 w-full sm:h-40">
+                    <div className="relative h-32 w-full bg-slate-50 sm:h-40">
                       <OptimizedImage
                         src={imageSrc}
                         alt={business.nombre}
                         sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
-                        className="object-cover"
+                        className="object-contain p-3"
                       />
                     </div>
                   )}
@@ -1871,12 +1871,12 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                         className={`w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[24px] border bg-white/90 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${servicio.premium_activo ? "border-violet-200 hover:shadow-[0_28px_60px_-30px_rgba(139,92,246,0.35)]" : "border-white/80 hover:shadow-[0_28px_60px_-30px_rgba(245,158,11,0.35)]"}`}
                       >
                         {servicio.imagen && (
-                          <div className="relative h-32 w-full sm:h-40">
+                          <div className="relative h-32 w-full bg-slate-50 sm:h-40">
                             <OptimizedImage
                               src={servicio.imagen}
                               alt={servicio.nombre}
                               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
-                              className="object-cover"
+                              className="object-contain p-3"
                             />
                           </div>
                         )}
@@ -2051,12 +2051,12 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                 className="cursor-pointer overflow-hidden rounded-[28px] border border-emerald-800/18 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45),0_0_0_1px_rgba(72,110,82,0.05)] transition hover:-translate-y-1.5 hover:border-emerald-800/24 hover:shadow-[0_28px_60px_-30px_rgba(74,110,82,0.18),0_0_0_1px_rgba(72,110,82,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/35"
               >
                 {event.imagen && (
-                  <div className="relative h-64 w-full">
+                  <div className="relative h-64 w-full bg-slate-50">
                     <OptimizedImage
                       src={event.imagen}
                       alt={event.titulo}
                       sizes="(max-width: 1024px) 100vw, 33vw"
-                      className="object-cover"
+                      className="object-contain p-3"
                     />
                   </div>
                 )}

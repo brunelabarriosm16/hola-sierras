@@ -1,4 +1,5 @@
 import { supabase } from "../supabase"
+import { shouldRecordClientEvent } from "./trackingDedupe"
 
 export const VIEW_MORE_SECTIONS = [
   "comercios",
@@ -25,6 +26,15 @@ export const recordViewMore = async (
   itemId: string,
   itemTitle?: string | null
 ) => {
+  if (
+    !shouldRecordClientEvent(`view-more:${section}:${itemId}`, {
+      storage: "session",
+      ttlMs: 10 * 1000,
+    })
+  ) {
+    return
+  }
+
   const { error } = await supabase.from("view_more_clicks").insert([
     {
       section,

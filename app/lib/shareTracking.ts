@@ -1,4 +1,5 @@
 import { supabase } from "../supabase"
+import { shouldRecordClientEvent } from "./trackingDedupe"
 
 export const SHARE_SECTIONS = [
   "comercios",
@@ -26,6 +27,15 @@ export const recordShare = async (
   itemId: string,
   itemTitle?: string | null
 ) => {
+  if (
+    !shouldRecordClientEvent(`share:${section}:${itemId}`, {
+      storage: "session",
+      ttlMs: 10 * 1000,
+    })
+  ) {
+    return true
+  }
+
   const { error } = await supabase.from("share_events").insert([
     {
       section,
