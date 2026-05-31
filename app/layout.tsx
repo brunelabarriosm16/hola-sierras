@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Script from "next/script"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css"
@@ -22,6 +23,18 @@ export default function RootLayout({
     <html lang="es">
       <body>
         {children}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-LV914VVTZR"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-LV914VVTZR');
+          `}
+        </Script>
         <Analytics />
         <SpeedInsights />
       </body>
