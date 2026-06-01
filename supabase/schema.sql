@@ -34,6 +34,21 @@ add column if not exists suscripcion_actualizada_at timestamp with time zone;
 alter table public.comercios
 add column if not exists mp_preapproval_id text;
 
+alter table public.comercios
+add column if not exists localidad text;
+
+alter table public.servicios
+add column if not exists localidad text;
+
+alter table public.cursos
+add column if not exists localidad text;
+
+alter table public.eventos
+add column if not exists localidad text;
+
+alter table public.instituciones
+add column if not exists localidad text;
+
 alter table public.servicios
 add column if not exists destacado boolean default false;
 

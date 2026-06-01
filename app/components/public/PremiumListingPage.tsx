@@ -36,6 +36,7 @@ type PremiumListingPageProps = {
   premiumExtraDetail?: string | null
   premiumExtraGallery?: string[] | null
   address?: string | null
+  location?: string | null
   phone?: string | null
   contactName?: string | null
   category?: string | null
@@ -58,6 +59,7 @@ export function PremiumListingPage({
   premiumExtraDetail,
   premiumExtraGallery,
   address,
+  location,
   phone,
   contactName,
   category,
@@ -232,6 +234,7 @@ export function PremiumListingPage({
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   {address ? <InfoPill icon={<MapPin className="h-4 w-4" />} text={address} /> : null}
+                  {location ? <InfoPill icon={<MapPin className="h-4 w-4" />} text={location} /> : null}
                   {phone ? <InfoPill icon={<Phone className="h-4 w-4" />} text={phone} /> : null}
                   {contactName ? (
                     <InfoPill icon={<UserRound className="h-4 w-4" />} text={contactName} />

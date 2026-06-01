@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react"
-import { ArrowRight, GraduationCap, Phone, Search } from "lucide-react"
+import { ArrowRight, GraduationCap, MapPin, Phone, Search } from "lucide-react"
 import { ContactActionLink } from "../ContactActionLink"
 import { ExternalLinksButtons } from "../ExternalLinksButtons"
 import { OptimizedImage } from "../OptimizedImage"
@@ -19,6 +19,7 @@ export type Curso = {
   descripcion: string
   responsable: string
   contacto: string
+  localidad?: string | null
   web_url?: string | null
   instagram_url?: string | null
   facebook_url?: string | null
@@ -76,7 +77,7 @@ export function CursosPageClient({ initialCursos }: { initialCursos: Curso[] }) 
     if (!term) return cursos
 
     return cursos.filter((curso) =>
-      `${curso.nombre} ${curso.descripcion || ""} ${curso.responsable || ""} ${curso.contacto || ""}`
+      `${curso.nombre} ${curso.descripcion || ""} ${curso.responsable || ""} ${curso.contacto || ""} ${curso.localidad || ""}`
         .toLowerCase()
         .includes(term)
     )
@@ -113,6 +114,9 @@ export function CursosPageClient({ initialCursos }: { initialCursos: Curso[] }) 
             : []),
           ...(selectedCurso?.contacto
             ? [{ icon: Phone, text: selectedCurso.contacto }]
+            : []),
+          ...(selectedCurso?.localidad
+            ? [{ icon: MapPin, text: selectedCurso.localidad }]
             : []),
         ]}
         actions={
@@ -221,6 +225,13 @@ export function CursosPageClient({ initialCursos }: { initialCursos: Curso[] }) 
                     <GraduationCap className="h-4 w-4" />
                     <span>{curso.responsable}</span>
                   </div>
+
+                  {curso.localidad ? (
+                    <div className="mt-2 flex items-center gap-2 text-sm font-medium text-sky-700">
+                      <MapPin className="h-4 w-4" />
+                      <span>{curso.localidad}</span>
+                    </div>
+                  ) : null}
 
                   <div className="mt-5 flex flex-wrap gap-3">
                     <button

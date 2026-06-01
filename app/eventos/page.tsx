@@ -12,7 +12,7 @@ const getEventos = unstable_cache(
 
     const { data } = await supabaseServer
       .from("eventos")
-      .select("id, titulo, categoria, descripcion, fecha, fecha_fin, fecha_solo_mes, ubicacion, telefono, web_url, instagram_url, facebook_url, imagen, estado, usa_whatsapp")
+      .select("id, titulo, categoria, descripcion, fecha, fecha_fin, fecha_solo_mes, ubicacion, localidad, telefono, web_url, instagram_url, facebook_url, imagen, estado, usa_whatsapp")
       .eq("estado", "activo")
       .or(buildActiveEventsFilter(today))
       .order("fecha", { ascending: true })

@@ -7,6 +7,7 @@ type CursoPayload = {
   descripcion?: string
   responsable?: string
   contacto?: string
+  localidad?: string | null
   web_url?: string | null
   instagram_url?: string | null
   facebook_url?: string | null
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
       descripcion,
       responsable,
       contacto,
+      localidad: cleanText(body.localidad) || null,
       web_url: cleanText(body.web_url) || null,
       instagram_url: cleanText(body.instagram_url) || null,
       facebook_url: cleanText(body.facebook_url) || null,

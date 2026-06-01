@@ -12,6 +12,7 @@ import { PublicDetailModal } from "../PublicDetailModal"
 import { PublicHeader } from "../PublicHeader"
 import { ShareButton } from "../ShareButton"
 import { recordContentVisit, recordSiteVisit } from "../../lib/contentVisits"
+import { getGoogleMapsSearchUrl } from "../../lib/maps"
 import { buildPublicNav } from "../../lib/publicNav"
 import { recordViewMore } from "../../lib/viewMoreTracking"
 
@@ -23,6 +24,7 @@ export type Comercio = {
   premium_galeria?: string[] | null
   premium_activo?: boolean | null
   direccion: string
+  localidad?: string | null
   telefono: string
   web_url?: string | null
   instagram_url?: string | null
@@ -112,7 +114,7 @@ export function ComerciosPageClient({
     if (!term) return comercios
 
     return comercios.filter((comercio) =>
-      `${comercio.nombre} ${comercio.descripcion || ""} ${comercio.direccion || ""} ${comercio.telefono || ""}`
+      `${comercio.nombre} ${comercio.descripcion || ""} ${comercio.direccion || ""} ${comercio.localidad || ""} ${comercio.telefono || ""}`
         .toLowerCase()
         .includes(term)
     )
@@ -169,7 +171,18 @@ export function ComerciosPageClient({
         }
         meta={[
           ...(selectedComercio?.direccion
-            ? [{ icon: MapPin, text: selectedComercio.direccion }]
+            ? [{
+                icon: MapPin,
+                text: selectedComercio.direccion,
+                href: getGoogleMapsSearchUrl(
+                  selectedComercio.nombre,
+                  selectedComercio.direccion,
+                  selectedComercio.localidad
+                ),
+              }]
+            : []),
+          ...(selectedComercio?.localidad
+            ? [{ icon: MapPin, text: selectedComercio.localidad }]
             : []),
           ...(selectedComercio?.telefono
             ? [{ icon: Phone, text: selectedComercio.telefono }]
@@ -302,9 +315,27 @@ export function ComerciosPageClient({
                     {comercio.descripcion}
                   </p>
 
-                  <p className="mt-2 text-sm text-gray-600">
+                  <a
+                    href={
+                      getGoogleMapsSearchUrl(
+                        comercio.nombre,
+                        comercio.direccion,
+                        comercio.localidad
+                      ) || "#"
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(event) => event.stopPropagation()}
+                    className="mt-2 block text-sm text-sky-700 transition hover:text-sky-800"
+                  >
                     Direccion: {comercio.direccion}
-                  </p>
+                  </a>
+
+                  {comercio.localidad ? (
+                    <p className="mt-1 text-sm font-medium text-sky-700">
+                      Localidad: {comercio.localidad}
+                    </p>
+                  ) : null}
 
                   <p className="mt-1 text-sm text-gray-600">
                     Telefono: {comercio.telefono}

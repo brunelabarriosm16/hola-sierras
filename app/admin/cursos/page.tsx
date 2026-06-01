@@ -5,6 +5,7 @@ import { Eye, EyeOff, GraduationCap, MessageCircle, Pencil, Plus, Share2, Star, 
 import { supabase } from "../../supabase"
 import { fileToDataUrl } from "../../lib/fileToDataUrl"
 import { AdminConfirmModal } from "../../components/AdminConfirmModal"
+import { LOCALIDADES, normalizeLocalidad } from "../../lib/localidades"
 import {
   AdminContentFilters,
   type AdminStatusFilter,
@@ -29,6 +30,7 @@ type Curso = {
   estado_suscripcion?: SubscriptionStatusKey | null
   responsable: string
   contacto: string
+  localidad?: string | null
   web_url?: string | null
   instagram_url?: string | null
   facebook_url?: string | null
@@ -50,6 +52,7 @@ const initialForm: CursoForm = {
   descripcion: "",
   responsable: "",
   contacto: "",
+  localidad: "",
   web_url: "",
   instagram_url: "",
   facebook_url: "",
@@ -77,7 +80,7 @@ export default function AdminCursosPage() {
         statusFilter === "all" || (curso.estado || "activo") === statusFilter
       const matchesSearch =
         !normalizedSearch ||
-        [curso.nombre, curso.descripcion, curso.responsable, curso.contacto]
+        [curso.nombre, curso.descripcion, curso.responsable, curso.contacto, curso.localidad]
           .map((value) => value || "")
           .some((value) => value.toLowerCase().includes(normalizedSearch))
 
@@ -216,6 +219,7 @@ export default function AdminCursosPage() {
       descripcion: formData.descripcion,
       responsable: formData.responsable,
       contacto: formData.contacto,
+      localidad: formData.localidad || null,
       web_url: formData.web_url?.trim() || null,
       instagram_url: formData.instagram_url?.trim() || null,
       facebook_url: formData.facebook_url?.trim() || null,
@@ -269,6 +273,7 @@ export default function AdminCursosPage() {
       descripcion: curso.descripcion,
       responsable: curso.responsable,
       contacto: curso.contacto,
+      localidad: normalizeLocalidad(curso.localidad),
       web_url: curso.web_url || "",
       instagram_url: curso.instagram_url || "",
       facebook_url: curso.facebook_url || "",
@@ -443,6 +448,26 @@ export default function AdminCursosPage() {
                     className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-violet-500"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-900">
+                  Localidad
+                </label>
+                <select
+                  value={formData.localidad || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, localidad: e.target.value }))
+                  }
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-violet-500"
+                >
+                  <option value="">Sin definir</option>
+                  {LOCALIDADES.map((localidad) => (
+                    <option key={localidad} value={localidad}>
+                      {localidad}
+                    </option>
+                  ))}
+                </select>
               </div>
 
                 <label className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700">
@@ -638,6 +663,9 @@ export default function AdminCursosPage() {
                     <td className="px-4 py-4 text-slate-600">
                       <div className="font-medium text-slate-800">{curso.responsable}</div>
                       <div className="mt-1 text-slate-500">{curso.contacto || "Sin contacto"}</div>
+                      {curso.localidad ? (
+                        <div className="mt-1 text-xs font-semibold text-sky-700">{curso.localidad}</div>
+                      ) : null}
                     </td>
                     <td className="px-4 py-4">
                       <span

@@ -6,12 +6,14 @@ import { AdminConfirmModal } from "../../components/AdminConfirmModal"
 import { supabase } from "../../supabase"
 import { logAdminActivity } from "../../lib/adminActivity"
 import { fileToDataUrl } from "../../lib/fileToDataUrl"
+import { LOCALIDADES, normalizeLocalidad } from "../../lib/localidades"
 
 type Institucion = {
   id: number
   nombre: string
   descripcion: string | null
   direccion: string | null
+  localidad?: string | null
   telefono: string | null
   web_url?: string | null
   instagram_url?: string | null
@@ -27,6 +29,7 @@ const initialForm: InstitucionForm = {
   nombre: "",
   descripcion: "",
   direccion: "",
+  localidad: "",
   telefono: "",
   web_url: "",
   instagram_url: "",
@@ -53,6 +56,7 @@ export default function AdminInstitucionesPage() {
       institucion.nombre,
       institucion.descripcion,
       institucion.direccion,
+      institucion.localidad,
       institucion.telefono,
     ]
       .map((value) => value || "")
@@ -94,6 +98,7 @@ export default function AdminInstitucionesPage() {
       nombre: institucion.nombre || "",
       descripcion: institucion.descripcion || "",
       direccion: institucion.direccion || "",
+      localidad: normalizeLocalidad(institucion.localidad),
       telefono: institucion.telefono || "",
       web_url: institucion.web_url || "",
       instagram_url: institucion.instagram_url || "",
@@ -179,6 +184,7 @@ export default function AdminInstitucionesPage() {
       nombre: formData.nombre,
       descripcion: formData.descripcion || null,
       direccion: formData.direccion || null,
+      localidad: formData.localidad || null,
       telefono: formData.telefono || null,
       web_url: formData.web_url?.trim() || null,
       instagram_url: formData.instagram_url?.trim() || null,
@@ -305,6 +311,26 @@ export default function AdminInstitucionesPage() {
                   }
                   className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
                 />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-900">
+                  Localidad
+                </label>
+                <select
+                  value={formData.localidad || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, localidad: e.target.value }))
+                  }
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-cyan-500"
+                >
+                  <option value="">Sin definir</option>
+                  {LOCALIDADES.map((localidad) => (
+                    <option key={localidad} value={localidad}>
+                      {localidad}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -505,6 +531,9 @@ export default function AdminInstitucionesPage() {
                         <div>{institucion.telefono || "Sin teléfono"}</div>
                         {institucion.direccion ? (
                           <div className="text-xs text-slate-500">{institucion.direccion}</div>
+                        ) : null}
+                        {institucion.localidad ? (
+                          <div className="text-xs font-semibold text-sky-700">{institucion.localidad}</div>
                         ) : null}
                       </div>
                     </td>

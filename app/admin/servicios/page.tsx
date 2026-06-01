@@ -11,6 +11,7 @@ import { subscriptionPlans, type SubscriptionPlanKey } from "../../lib/subscript
 import { getSubscriptionStatusBadge, getSubscriptionStatusLabel, type SubscriptionStatusKey } from "../../lib/subscriptionStatus"
 import { supabase } from "../../supabase"
 import { fileToDataUrl } from "../../lib/fileToDataUrl"
+import { LOCALIDADES, normalizeLocalidad } from "../../lib/localidades"
 import {
   fetchAdminEngagementMetrics,
   getContentStateBadgeClass,
@@ -34,6 +35,7 @@ type Servicio = {
   responsable: string | null
   contacto: string | null
   direccion: string | null
+  localidad?: string | null
   web_url?: string | null
   instagram_url?: string | null
   facebook_url?: string | null
@@ -55,6 +57,7 @@ type ServicioForm = {
   responsable: string
   contacto: string
   direccion: string
+  localidad: string
   web_url: string
   instagram_url: string
   facebook_url: string
@@ -72,6 +75,7 @@ const initialForm: ServicioForm = {
   responsable: "",
   contacto: "",
   direccion: "",
+  localidad: "",
   web_url: "",
   instagram_url: "",
   facebook_url: "",
@@ -113,6 +117,7 @@ export default function AdminServiciosPage() {
           servicio.responsable,
           servicio.contacto,
           servicio.direccion,
+          servicio.localidad,
         ]
           .map((value) => value || "")
           .some((value) => value.toLowerCase().includes(normalizedSearch))
@@ -167,6 +172,7 @@ export default function AdminServiciosPage() {
       responsable: servicio.responsable || "",
       contacto: servicio.contacto || "",
       direccion: servicio.direccion || "",
+      localidad: normalizeLocalidad(servicio.localidad),
       web_url: servicio.web_url || "",
       instagram_url: servicio.instagram_url || "",
       facebook_url: servicio.facebook_url || "",
@@ -288,6 +294,7 @@ export default function AdminServiciosPage() {
       responsable: formData.responsable || null,
       contacto: formData.contacto || null,
       direccion: formData.direccion || null,
+      localidad: formData.localidad || null,
       web_url: formData.web_url.trim() || null,
       instagram_url: formData.instagram_url.trim() || null,
       facebook_url: formData.facebook_url.trim() || null,
@@ -598,6 +605,26 @@ export default function AdminServiciosPage() {
                 />
               </div>
 
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-900">
+                  Localidad
+                </label>
+                <select
+                  value={formData.localidad}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, localidad: e.target.value }))
+                  }
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-amber-500"
+                >
+                  <option value="">Sin definir</option>
+                  {LOCALIDADES.map((localidad) => (
+                    <option key={localidad} value={localidad}>
+                      {localidad}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-900">
@@ -790,6 +817,9 @@ export default function AdminServiciosPage() {
                       </div>
                       {servicio.direccion ? (
                         <div className="mt-1 text-slate-500">{servicio.direccion}</div>
+                      ) : null}
+                      {servicio.localidad ? (
+                        <div className="mt-1 text-xs font-semibold text-sky-700">{servicio.localidad}</div>
                       ) : null}
                     </td>
                     <td className="px-4 py-4">

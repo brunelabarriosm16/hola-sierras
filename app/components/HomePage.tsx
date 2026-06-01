@@ -22,6 +22,7 @@ import { SorteoParticipationForm } from "./SorteoParticipationForm"
 import { formatEventDateRange } from "../lib/eventDates"
 import { fetchEventLikes, recordEventLike } from "../lib/eventLikes"
 import { parseEventDescription } from "../lib/eventSubmissionMeta"
+import { getGoogleMapsSearchUrl } from "../lib/maps"
 import { recordContentVisit, recordSiteVisit } from "../lib/contentVisits"
 import { buildHomePublicNav } from "../lib/publicNav"
 import { recordViewMore, type ViewMoreSection } from "../lib/viewMoreTracking"
@@ -60,6 +61,7 @@ type Comercio = {
   premium_galeria?: string[] | null
   premium_activo?: boolean | null
   direccion: string | null
+  localidad?: string | null
   telefono: string | null
   web_url?: string | null
   instagram_url?: string | null
@@ -80,6 +82,7 @@ type Evento = {
   fecha_fin?: string | null
   fecha_solo_mes?: boolean | null
   ubicacion: string
+  localidad?: string | null
   telefono?: string | null
   web_url?: string | null
   instagram_url?: string | null
@@ -105,6 +108,7 @@ type Curso = {
   descripcion: string
   responsable: string
   contacto: string
+  localidad?: string | null
   web_url?: string | null
   instagram_url?: string | null
   facebook_url?: string | null
@@ -125,6 +129,7 @@ type Servicio = {
   responsable: string | null
   contacto: string | null
   direccion: string | null
+  localidad?: string | null
   web_url?: string | null
   instagram_url?: string | null
   facebook_url?: string | null
@@ -139,6 +144,7 @@ type Institucion = {
   nombre: string
   descripcion: string | null
   direccion: string | null
+  localidad?: string | null
   telefono: string | null
   web_url?: string | null
   instagram_url?: string | null
@@ -282,7 +288,7 @@ const buildWelcomeItems = (
     title: item.nombre,
     description: item.descripcion || "Conoce este comercio destacado de la ciudad.",
     image: item.imagen_url || item.imagen || null,
-    subtitle: item.direccion || null,
+    subtitle: item.localidad || item.direccion || null,
     contact: item.telefono || null,
     usesWhatsapp: item.usa_whatsapp ?? true,
   })),
@@ -1003,7 +1009,18 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
           ) : null
         }
         meta={[
-          ...(selectedComercio?.direccion ? [{ icon: MapPin, text: selectedComercio.direccion }] : []),
+          ...(selectedComercio?.direccion
+            ? [{
+                icon: MapPin,
+                text: selectedComercio.direccion,
+                href: getGoogleMapsSearchUrl(
+                  selectedComercio.nombre,
+                  selectedComercio.direccion,
+                  selectedComercio.localidad
+                ),
+              }]
+            : []),
+          ...(selectedComercio?.localidad ? [{ icon: MapPin, text: selectedComercio.localidad }] : []),
           ...(selectedComercio?.telefono ? [{ icon: Phone, text: selectedComercio.telefono }] : []),
         ]}
         actions={
@@ -1105,7 +1122,18 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         meta={[
           ...(selectedServicio?.responsable ? [{ icon: UserRound, text: selectedServicio.responsable }] : []),
           ...(selectedServicio?.contacto ? [{ icon: Phone, text: selectedServicio.contacto }] : []),
-          ...(selectedServicio?.direccion ? [{ icon: MapPin, text: selectedServicio.direccion }] : []),
+          ...(selectedServicio?.direccion
+            ? [{
+                icon: MapPin,
+                text: selectedServicio.direccion,
+                href: getGoogleMapsSearchUrl(
+                  selectedServicio.nombre,
+                  selectedServicio.direccion,
+                  selectedServicio.localidad
+                ),
+              }]
+            : []),
+          ...(selectedServicio?.localidad ? [{ icon: MapPin, text: selectedServicio.localidad }] : []),
         ]}
         actions={
           <>
@@ -1180,8 +1208,17 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
               }]
             : []),
           ...(selectedEvento?.ubicacion
-            ? [{ icon: MapPin, text: selectedEvento.ubicacion }]
+            ? [{
+                icon: MapPin,
+                text: selectedEvento.ubicacion,
+                href: getGoogleMapsSearchUrl(
+                  selectedEvento.titulo,
+                  selectedEvento.ubicacion,
+                  selectedEvento.localidad
+                ),
+              }]
             : []),
+          ...(selectedEvento?.localidad ? [{ icon: MapPin, text: selectedEvento.localidad }] : []),
           ...(selectedEvento?.telefono
             ? [{ icon: Phone, text: selectedEvento.telefono }]
             : []),
@@ -1428,10 +1465,21 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                 </h3>
 
                 {selectedInstitucion.direccion && (
-                  <div className="mt-4 flex items-center gap-2 text-slate-500">
+                  <a
+                    href={
+                      getGoogleMapsSearchUrl(
+                        selectedInstitucion.nombre,
+                        selectedInstitucion.direccion,
+                        selectedInstitucion.localidad
+                      ) || "#"
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 flex items-center gap-2 text-sky-700 transition hover:text-sky-800"
+                  >
                     <MapPin className="h-4 w-4" />
                     <span>{selectedInstitucion.direccion}</span>
-                  </div>
+                  </a>
                 )}
 
                 {selectedInstitucion.telefono && (
@@ -1735,49 +1783,36 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                     <h3 className="text-base font-semibold leading-tight text-slate-900 sm:text-lg">
                       {business.nombre}
                     </h3>
-                    {business.descripcion && (
-                        <p className="mt-2 line-clamp-2 whitespace-pre-line text-sm text-slate-500">
-                          {business.descripcion}
-                        </p>
-                    )}
                     {business.direccion && (
-                      <p className="mt-2 line-clamp-2 text-xs text-slate-500">
-                        {business.direccion}
-                      </p>
-                    )}
-
-                      {business.telefono && business.usa_whatsapp !== false ? (
-                        <ContactActionLink
-                          href={getContactHref(
-                            business.telefono,
-                          business.usa_whatsapp
-                        )}
-                        mode="whatsapp"
-                        section="comercios"
-                        itemId={String(business.id)}
-                        itemTitle={business.nombre}
-                        onClick={(event) => event.stopPropagation()}
+                      <a
+                        href={
+                          getGoogleMapsSearchUrl(
+                            business.nombre,
+                            business.direccion,
+                            business.localidad
+                          ) || "#"
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-green-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-600"
+                        onClick={(event) => event.stopPropagation()}
+                        className="mt-2 block line-clamp-2 text-xs text-sky-700 transition hover:text-sky-800"
                       >
-                          <Phone className="h-5 w-5" />
-                          WhatsApp
-                        </ContactActionLink>
-                      ) : (
-                        <PrimaryExternalLinkButton
-                          webUrl={business.web_url}
-                          instagramUrl={business.instagram_url}
-                          facebookUrl={business.facebook_url}
-                          section="comercios"
-                          itemId={String(business.id)}
-                          itemTitle={business.nombre}
-                          onClick={(event) => event.stopPropagation()}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
-                        />
-                      )}
+                        {business.direccion}
+                      </a>
+                    )}
+
+                    <PrimaryExternalLinkButton
+                      webUrl={business.web_url}
+                      instagramUrl={business.instagram_url}
+                      facebookUrl={business.facebook_url}
+                      section="comercios"
+                      itemId={String(business.id)}
+                      itemTitle={business.nombre}
+                      onClick={(event) => event.stopPropagation()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
+                    />
 
                     {business.premium_activo ? (
                       <Link
@@ -1908,46 +1943,37 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                             )}
 
                             {servicio.direccion && (
-                              <div className="flex items-center gap-2">
+                              <a
+                                href={
+                                  getGoogleMapsSearchUrl(
+                                    servicio.nombre,
+                                    servicio.direccion,
+                                    servicio.localidad
+                                  ) || "#"
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(event) => event.stopPropagation()}
+                                className="flex items-center gap-2 text-sky-700 transition hover:text-sky-800"
+                              >
                                 <MapPin className="h-4 w-4" />
                                 <span>{servicio.direccion}</span>
-                              </div>
+                              </a>
                             )}
                           </div>
 
-                            {servicio.contacto?.trim() &&
-                            servicio.usa_whatsapp !== false ? (
-                              <ContactActionLink
-                                href={getContactHref(
-                                  servicio.contacto,
-                                servicio.usa_whatsapp
-                              )}
-                              mode="whatsapp"
-                              section="servicios"
-                              itemId={String(servicio.id)}
-                              itemTitle={servicio.nombre}
-                              onClick={(event) => event.stopPropagation()}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-green-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-600"
-                            >
-                                <Phone className="h-5 w-5" />
-                                WhatsApp
-                              </ContactActionLink>
-                            ) : (
-                              <PrimaryExternalLinkButton
-                                webUrl={servicio.web_url}
-                                instagramUrl={servicio.instagram_url}
-                                facebookUrl={servicio.facebook_url}
-                                section="servicios"
-                                itemId={String(servicio.id)}
-                                itemTitle={servicio.nombre}
-                                onClick={(event) => event.stopPropagation()}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
-                              />
-                            )}
+                          <PrimaryExternalLinkButton
+                            webUrl={servicio.web_url}
+                            instagramUrl={servicio.instagram_url}
+                            facebookUrl={servicio.facebook_url}
+                            section="servicios"
+                            itemId={String(servicio.id)}
+                            itemTitle={servicio.nombre}
+                            onClick={(event) => event.stopPropagation()}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
+                          />
 
                           {servicio.premium_activo ? (
                             <Link
@@ -2075,7 +2101,21 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                     {event.titulo}
                   </h3>
 
-                  <p className="mt-2 text-sm text-slate-500">{event.ubicacion}</p>
+                  <a
+                    href={
+                      getGoogleMapsSearchUrl(
+                        event.titulo,
+                        event.ubicacion,
+                        event.localidad
+                      ) || "#"
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(clickEvent) => clickEvent.stopPropagation()}
+                    className="mt-2 block text-sm text-sky-700 transition hover:text-sky-800"
+                  >
+                    {event.ubicacion}
+                  </a>
 
                   <div className="mt-4" onClick={(eventLikeWrapper) => eventLikeWrapper.stopPropagation()}>
                     <EventLikeButton
@@ -2266,9 +2306,21 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                         </h3>
 
                         {institucion.direccion ? (
-                          <p className="mt-3 line-clamp-2 text-sm text-slate-500">
+                          <a
+                            href={
+                              getGoogleMapsSearchUrl(
+                                institucion.nombre,
+                                institucion.direccion,
+                                institucion.localidad
+                              ) || "#"
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                            className="mt-3 block line-clamp-2 text-sm text-sky-700 transition hover:text-sky-800"
+                          >
                             {institucion.direccion}
-                          </p>
+                          </a>
                         ) : null}
                       </div>
 

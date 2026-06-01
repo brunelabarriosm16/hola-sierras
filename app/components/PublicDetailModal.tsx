@@ -8,6 +8,7 @@ import { OptimizedImage } from "./OptimizedImage"
 type DetailMetaItem = {
   icon: LucideIcon
   text: string
+  href?: string | null
 }
 
 type PublicDetailModalProps = {
@@ -122,17 +123,35 @@ export function PublicDetailModal({
 
               {meta.length > 0 && (
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  {meta.map(({ icon: Icon, text }, index) => (
-                    <div
-                      key={`${text}-${index}`}
-                      className="flex min-h-[68px] items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-700"
-                    >
+                  {meta.map(({ icon: Icon, text, href }, index) => {
+                    const content = (
+                      <>
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-sky-600 shadow-sm">
                         <Icon className="h-4 w-4" />
                       </div>
                       <span className="leading-6">{text}</span>
-                    </div>
-                  ))}
+                      </>
+                    )
+
+                    const className =
+                      "flex min-h-[68px] items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-700"
+
+                    return href ? (
+                      <a
+                        key={`${text}-${index}`}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`${className} transition hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800`}
+                      >
+                        {content}
+                      </a>
+                    ) : (
+                      <div key={`${text}-${index}`} className={className}>
+                        {content}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>

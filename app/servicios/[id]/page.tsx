@@ -14,7 +14,7 @@ export default async function ServicioSharePage({
   const { id } = await params
   const { data } = await supabaseServer
     .from("servicios")
-    .select("id, nombre, categoria, descripcion, premium_detalle, premium_galeria, premium_extra_titulo, premium_extra_detalle, premium_extra_galeria, premium_activo, responsable, contacto, direccion, web_url, instagram_url, facebook_url, imagen, estado, usa_whatsapp, owner_email")
+    .select("id, nombre, categoria, descripcion, premium_detalle, premium_galeria, premium_extra_titulo, premium_extra_detalle, premium_extra_galeria, premium_activo, responsable, contacto, direccion, localidad, web_url, instagram_url, facebook_url, imagen, estado, usa_whatsapp, owner_email")
     .eq("id", Number(id))
     .maybeSingle()
 
@@ -73,6 +73,7 @@ export default async function ServicioSharePage({
       premiumExtraDetail={data.premium_extra_detalle}
       premiumExtraGallery={data.premium_extra_galeria}
       address={data.direccion}
+      location={data.localidad}
       phone={data.contacto}
       contactName={data.responsable}
       category={data.categoria}

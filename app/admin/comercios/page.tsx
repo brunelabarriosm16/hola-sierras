@@ -11,6 +11,7 @@ import { subscriptionPlans, type SubscriptionPlanKey } from "../../lib/subscript
 import { getSubscriptionStatusBadge, getSubscriptionStatusLabel, type SubscriptionStatusKey } from "../../lib/subscriptionStatus"
 import { supabase } from "../../supabase"
 import { fileToDataUrl } from "../../lib/fileToDataUrl"
+import { LOCALIDADES, normalizeLocalidad } from "../../lib/localidades"
 import {
   fetchAdminEngagementMetrics,
   getContentStateBadgeClass,
@@ -34,6 +35,7 @@ type Comercio = {
   plan_suscripcion?: SubscriptionPlanKey | null
   estado_suscripcion?: SubscriptionStatusKey | null
   direccion: string | null
+  localidad?: string | null
   telefono: string | null
   web_url?: string | null
   instagram_url?: string | null
@@ -50,6 +52,7 @@ type Comercio = {
 type ComercioForm = {
   nombre: string
   direccion: string
+  localidad: string
   telefono: string
   descripcion: string
   premium_detalle: string
@@ -68,6 +71,7 @@ type ComercioForm = {
 const initialForm: ComercioForm = {
   nombre: "",
   direccion: "",
+  localidad: "",
   telefono: "",
   descripcion: "",
   premium_detalle: "",
@@ -107,6 +111,7 @@ export default function AdminComerciosPage() {
           comercio.nombre,
           comercio.descripcion,
           comercio.direccion,
+          comercio.localidad,
           comercio.telefono,
         ]
           .map((value) => value || "")
@@ -155,6 +160,7 @@ export default function AdminComerciosPage() {
     setFormData({
       nombre: comercio.nombre || "",
       direccion: comercio.direccion || "",
+      localidad: normalizeLocalidad(comercio.localidad),
       telefono: comercio.telefono || "",
       descripcion: comercio.descripcion || "",
       premium_detalle: comercio.premium_detalle || "",
@@ -301,6 +307,7 @@ export default function AdminComerciosPage() {
     const payload = {
       nombre: formData.nombre,
       direccion: formData.direccion || null,
+      localidad: formData.localidad || null,
       telefono: formData.telefono || null,
       descripcion: formData.descripcion || null,
       premium_detalle: formData.premium_detalle.trim() || null,
@@ -508,6 +515,26 @@ export default function AdminComerciosPage() {
                   }
                   className="h-28 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500"
                 />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-900">
+                  Localidad
+                </label>
+                <select
+                  value={formData.localidad}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, localidad: e.target.value }))
+                  }
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500"
+                >
+                  <option value="">Sin definir</option>
+                  {LOCALIDADES.map((localidad) => (
+                    <option key={localidad} value={localidad}>
+                      {localidad}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
@@ -895,6 +922,9 @@ export default function AdminComerciosPage() {
                           <div>{comercio.telefono || "Sin teléfono"}</div>
                           {comercio.direccion ? (
                             <div className="text-xs text-slate-500">{comercio.direccion}</div>
+                          ) : null}
+                          {comercio.localidad ? (
+                            <div className="mt-1 text-xs font-semibold text-sky-700">{comercio.localidad}</div>
                           ) : null}
                         </div>
                       </td>

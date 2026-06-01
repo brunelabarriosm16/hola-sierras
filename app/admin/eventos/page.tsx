@@ -9,6 +9,7 @@ import { logAdminActivity } from "../../lib/adminActivity"
 import { buildMonthEventRange, formatEventDateRange } from "../../lib/eventDates"
 import { buildEventDescription, parseEventDescription } from "../../lib/eventSubmissionMeta"
 import { fileToDataUrl } from "../../lib/fileToDataUrl"
+import { LOCALIDADES, normalizeLocalidad } from "../../lib/localidades"
 import { userEntityLabels, type UserEntityType } from "../../lib/userProfiles"
 
 type Evento = {
@@ -19,6 +20,7 @@ type Evento = {
   fecha_fin?: string | null
   fecha_solo_mes?: boolean | null
   ubicacion: string
+  localidad?: string | null
   telefono?: string | null
   web_url?: string | null
   instagram_url?: string | null
@@ -41,6 +43,7 @@ type EventoForm = {
   fechaSoloMes: boolean
   mesReferencia: string
   ubicacion: string
+  localidad: string
   telefono: string
   web_url: string
   instagram_url: string
@@ -66,6 +69,7 @@ const initialForm: EventoForm = {
   fechaSoloMes: false,
   mesReferencia: "",
   ubicacion: "",
+  localidad: "",
   telefono: "",
   web_url: "",
   instagram_url: "",
@@ -195,6 +199,7 @@ export default function AdminEventosPage() {
         evento.titulo,
         normalizeAdminEventCategory(evento.categoria),
         evento.ubicacion,
+        evento.localidad,
         evento.telefono,
         parsedDescription.baseDescription,
         parsedDescription.submissionContact?.senderName,
@@ -232,6 +237,7 @@ export default function AdminEventosPage() {
       mesReferencia:
         evento.fecha_solo_mes && evento.fecha ? String(evento.fecha).slice(0, 7) : "",
       ubicacion: evento.ubicacion || "",
+      localidad: normalizeLocalidad(evento.localidad),
       telefono: evento.telefono || "",
       web_url: evento.web_url || "",
       instagram_url: evento.instagram_url || "",
@@ -304,6 +310,7 @@ export default function AdminEventosPage() {
       fecha_fin: evento.fecha_fin || null,
       fecha_solo_mes: evento.fecha_solo_mes ?? false,
       ubicacion: evento.ubicacion,
+      localidad: evento.localidad || null,
       telefono: evento.telefono || null,
       web_url: evento.web_url?.trim() || null,
       instagram_url: evento.instagram_url?.trim() || null,
@@ -448,6 +455,7 @@ export default function AdminEventosPage() {
       fecha_fin: endDate,
       fecha_solo_mes: formData.fechaSoloMes,
       ubicacion: formData.ubicacion,
+      localidad: formData.localidad || null,
       telefono: formData.telefono || null,
       web_url: formData.web_url.trim() || null,
       instagram_url: formData.instagram_url.trim() || null,
@@ -800,6 +808,26 @@ export default function AdminEventosPage() {
                     />
                   </div>
                 </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-900">
+                    Localidad
+                  </label>
+                  <select
+                    value={formData.localidad}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, localidad: e.target.value }))
+                    }
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
+                  >
+                    <option value="">Sin definir</option>
+                    {LOCALIDADES.map((localidad) => (
+                      <option key={localidad} value={localidad}>
+                        {localidad}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -1063,6 +1091,9 @@ export default function AdminEventosPage() {
                           {formatEventDateRange(evento.fecha, evento.fecha_fin, evento.fecha_solo_mes ?? false)}
                         </div>
                         <div className="mt-1 text-xs text-slate-500">{evento.ubicacion}</div>
+                        {evento.localidad ? (
+                          <div className="mt-1 text-xs font-semibold text-sky-700">{evento.localidad}</div>
+                        ) : null}
                       </td>
                       <td className="px-5 py-4">
                         <span

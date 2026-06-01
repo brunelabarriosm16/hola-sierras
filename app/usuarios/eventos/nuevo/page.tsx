@@ -9,6 +9,7 @@ import { AuthFormStatus } from "../../../components/AuthFormStatus"
 import { buildMonthEventRange } from "../../../lib/eventDates"
 import { buildEventDescription, parseEventDescription } from "../../../lib/eventSubmissionMeta"
 import { fileToDataUrl } from "../../../lib/fileToDataUrl"
+import { LOCALIDADES, normalizeLocalidad } from "../../../lib/localidades"
 import {
   fetchUserOwnedEntities,
   findUserOwnedEntity,
@@ -26,6 +27,7 @@ type EventForm = {
   fechaSoloMes: boolean
   mesReferencia: string
   ubicacion: string
+  localidad: string
   telefono: string
   webUrl: string
   instagramUrl: string
@@ -59,6 +61,7 @@ const initialForm: EventForm = {
   fechaSoloMes: false,
   mesReferencia: "",
   ubicacion: "",
+  localidad: "",
   telefono: "",
   webUrl: "",
   instagramUrl: "",
@@ -152,6 +155,7 @@ export default function UsuariosNuevoEventoPage() {
                   ? String(existingEvent.fecha).slice(0, 7)
                   : "",
               ubicacion: existingEvent.ubicacion || "",
+              localidad: normalizeLocalidad(existingEvent.localidad),
               telefono: existingEvent.telefono || "",
               webUrl: existingEvent.web_url || "",
               instagramUrl: existingEvent.instagram_url || "",
@@ -314,6 +318,7 @@ export default function UsuariosNuevoEventoPage() {
       fecha_fin: endDate,
       fecha_solo_mes: formData.fechaSoloMes,
       ubicacion: formData.ubicacion.trim(),
+      localidad: formData.localidad || null,
       telefono: formData.telefono.trim() || null,
       web_url: formData.webUrl.trim() || null,
       instagram_url: formData.instagramUrl.trim() || null,
@@ -662,6 +667,24 @@ export default function UsuariosNuevoEventoPage() {
                         className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 outline-none transition focus:border-blue-400"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Localidad</label>
+                    <select
+                      value={formData.localidad}
+                      onChange={(event) =>
+                        setFormData((current) => ({ ...current, localidad: event.target.value }))
+                      }
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
+                    >
+                      <option value="">Sin definir</option>
+                      {LOCALIDADES.map((localidad) => (
+                        <option key={localidad} value={localidad}>
+                          {localidad}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="space-y-2">

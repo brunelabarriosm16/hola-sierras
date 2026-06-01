@@ -12,6 +12,7 @@ import { PublicDetailModal } from "../PublicDetailModal"
 import { PublicHeader } from "../PublicHeader"
 import { ShareButton } from "../ShareButton"
 import { recordContentVisit, recordSiteVisit } from "../../lib/contentVisits"
+import { getGoogleMapsSearchUrl } from "../../lib/maps"
 import { buildPublicNav } from "../../lib/publicNav"
 import { recordViewMore } from "../../lib/viewMoreTracking"
 
@@ -26,6 +27,7 @@ export type Servicio = {
   responsable: string | null
   contacto: string | null
   direccion: string | null
+  localidad?: string | null
   web_url?: string | null
   instagram_url?: string | null
   facebook_url?: string | null
@@ -93,7 +95,7 @@ export function ServiciosPageClient({
     if (!term) return servicios
 
     return servicios.filter((servicio) =>
-      `${servicio.nombre} ${servicio.categoria} ${servicio.descripcion || ""} ${servicio.responsable || ""} ${servicio.contacto || ""} ${servicio.direccion || ""}`
+      `${servicio.nombre} ${servicio.categoria} ${servicio.descripcion || ""} ${servicio.responsable || ""} ${servicio.contacto || ""} ${servicio.direccion || ""} ${servicio.localidad || ""}`
         .toLowerCase()
         .includes(term)
     )
@@ -185,7 +187,18 @@ export function ServiciosPageClient({
             ? [{ icon: Phone, text: selectedServicio.contacto }]
             : []),
           ...(selectedServicio?.direccion
-            ? [{ icon: MapPin, text: selectedServicio.direccion }]
+            ? [{
+                icon: MapPin,
+                text: selectedServicio.direccion,
+                href: getGoogleMapsSearchUrl(
+                  selectedServicio.nombre,
+                  selectedServicio.direccion,
+                  selectedServicio.localidad
+                ),
+              }]
+            : []),
+          ...(selectedServicio?.localidad
+            ? [{ icon: MapPin, text: selectedServicio.localidad }]
             : []),
         ]}
         actions={
@@ -345,11 +358,29 @@ export function ServiciosPageClient({
                           )}
 
                           {servicio.direccion && (
-                            <div className="flex items-center gap-2">
+                            <a
+                              href={
+                                getGoogleMapsSearchUrl(
+                                  servicio.nombre,
+                                  servicio.direccion,
+                                  servicio.localidad
+                                ) || "#"
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(event) => event.stopPropagation()}
+                              className="flex items-center gap-2 text-sky-700 transition hover:text-sky-800"
+                            >
                               <MapPin className="h-4 w-4" />
                               <span>{servicio.direccion}</span>
-                            </div>
+                            </a>
                           )}
+                          {servicio.localidad ? (
+                            <div className="flex items-center gap-2 font-medium text-sky-700">
+                              <MapPin className="h-4 w-4" />
+                              <span>{servicio.localidad}</span>
+                            </div>
+                          ) : null}
                         </div>
 
                         <div className="mt-5 flex flex-wrap gap-3">

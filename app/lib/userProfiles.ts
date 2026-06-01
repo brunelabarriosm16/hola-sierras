@@ -31,6 +31,7 @@ export type UserEntityRecord = {
   mp_preapproval_id?: string | null
   created_at?: string | null
   direccion?: string | null
+  localidad?: string | null
   telefono?: string | null
   imagen?: string | null
   imagen_url?: string | null
@@ -154,6 +155,9 @@ export function buildUserProfileFields(entity: UserOwnedEntity | null) {
   return [
     entity.record.direccion
       ? { label: "Direccion", value: entity.record.direccion, icon: MapPin }
+      : null,
+    entity.record.localidad
+      ? { label: "Localidad", value: entity.record.localidad, icon: MapPin }
       : null,
     entity.record.telefono || entity.record.contacto
       ? {

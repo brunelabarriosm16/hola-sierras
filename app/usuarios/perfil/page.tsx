@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { Trash2 } from "lucide-react"
 import { AuthFormStatus } from "../../components/AuthFormStatus"
 import { fileToDataUrl } from "../../lib/fileToDataUrl"
+import { LOCALIDADES, normalizeLocalidad } from "../../lib/localidades"
 import { findUserOwnedEntity, getUserProfileTable, normalizeUserEntityStatus, supportsPremiumProfile, userEntityLabels, type UserOwnedEntity } from "../../lib/userProfiles"
 import { supabase } from "../../supabase"
 
@@ -14,6 +15,7 @@ type ProfileForm = {
   nombre: string
   descripcion: string
   direccion: string
+  localidad: string
   telefono: string
   responsable: string
   contacto: string
@@ -36,6 +38,7 @@ const initialForm: ProfileForm = {
   nombre: "",
   descripcion: "",
   direccion: "",
+  localidad: "",
   telefono: "",
   responsable: "",
   contacto: "",
@@ -85,6 +88,7 @@ export default function UsuariosPerfilPage() {
           nombre: entity.record.nombre || "",
           descripcion: entity.record.descripcion || "",
           direccion: entity.record.direccion || "",
+          localidad: normalizeLocalidad(entity.record.localidad),
           telefono: entity.record.telefono || "",
           responsable: entity.record.responsable || "",
           contacto: entity.record.contacto || "",
@@ -170,6 +174,7 @@ export default function UsuariosPerfilPage() {
     const commonPayload = {
       nombre: formData.nombre.trim(),
       descripcion: formData.descripcion.trim() || null,
+      localidad: formData.localidad || null,
       estado: ownedEntity.record.estado ?? "borrador",
       usa_whatsapp: formData.usaWhatsapp,
       web_url: formData.webUrl.trim() || null,
@@ -380,6 +385,11 @@ export default function UsuariosPerfilPage() {
                     />
                   ) : null}
 
+                  <LocalidadField
+                    value={formData.localidad}
+                    onChange={(value) => setFormData((current) => ({ ...current, localidad: value }))}
+                  />
+
                   <TextAreaField
                     label="Descripcion"
                     value={formData.descripcion}
@@ -584,6 +594,32 @@ function TextAreaField({
         rows={5}
         className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-400"
       />
+    </div>
+  )
+}
+
+function LocalidadField({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-slate-700">Localidad</label>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-400"
+      >
+        <option value="">Sin definir</option>
+        {LOCALIDADES.map((localidad) => (
+          <option key={localidad} value={localidad}>
+            {localidad}
+          </option>
+        ))}
+      </select>
     </div>
   )
 }

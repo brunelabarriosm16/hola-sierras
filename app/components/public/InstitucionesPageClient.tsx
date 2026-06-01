@@ -9,6 +9,7 @@ import { PublicDetailModal } from "../PublicDetailModal"
 import { PublicHeader } from "../PublicHeader"
 import { ShareButton } from "../ShareButton"
 import { recordContentVisit, recordSiteVisit } from "../../lib/contentVisits"
+import { getGoogleMapsSearchUrl } from "../../lib/maps"
 import { buildPublicNav } from "../../lib/publicNav"
 import { recordViewMore } from "../../lib/viewMoreTracking"
 
@@ -17,6 +18,7 @@ type Institucion = {
   nombre: string
   descripcion: string | null
   direccion: string | null
+  localidad?: string | null
   telefono: string | null
   web_url?: string | null
   instagram_url?: string | null
@@ -65,7 +67,7 @@ export function InstitucionesPageClient({
     if (!term) return instituciones
 
     return instituciones.filter((institucion) =>
-      `${institucion.nombre} ${institucion.descripcion || ""} ${institucion.direccion || ""} ${institucion.telefono || ""}`
+      `${institucion.nombre} ${institucion.descripcion || ""} ${institucion.direccion || ""} ${institucion.localidad || ""} ${institucion.telefono || ""}`
         .toLowerCase()
         .includes(term)
     )
@@ -122,7 +124,18 @@ export function InstitucionesPageClient({
         description={selectedInstitucion?.descripcion || null}
         meta={[
           ...(selectedInstitucion?.direccion
-            ? [{ icon: MapPin, text: selectedInstitucion.direccion }]
+            ? [{
+                icon: MapPin,
+                text: selectedInstitucion.direccion,
+                href: getGoogleMapsSearchUrl(
+                  selectedInstitucion.nombre,
+                  selectedInstitucion.direccion,
+                  selectedInstitucion.localidad
+                ),
+              }]
+            : []),
+          ...(selectedInstitucion?.localidad
+            ? [{ icon: MapPin, text: selectedInstitucion.localidad }]
             : []),
           ...(selectedInstitucion?.telefono
             ? [{ icon: Phone, text: selectedInstitucion.telefono }]

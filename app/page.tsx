@@ -31,32 +31,32 @@ const getHomeSupabaseData = unstable_cache(
     ] = await Promise.all([
       supabaseServer
         .from("comercios")
-        .select("id, nombre, descripcion, premium_detalle, premium_galeria, premium_activo, direccion, telefono, web_url, instagram_url, facebook_url, imagen, imagen_url, destacado, plan_suscripcion, usa_whatsapp")
+        .select("id, nombre, descripcion, premium_detalle, premium_galeria, premium_activo, direccion, localidad, telefono, web_url, instagram_url, facebook_url, imagen, imagen_url, destacado, plan_suscripcion, usa_whatsapp")
         .or("estado.is.null,estado.eq.activo")
         .or("destacado.eq.true,plan_suscripcion.eq.destacado,plan_suscripcion.eq.destacado_plus")
         .order("id", { ascending: false })
         .limit(48),
       supabaseServer
         .from("eventos")
-        .select("id, titulo, categoria, descripcion, fecha, fecha_fin, fecha_solo_mes, ubicacion, telefono, web_url, instagram_url, facebook_url, imagen, estado, usa_whatsapp")
+        .select("id, titulo, categoria, descripcion, fecha, fecha_fin, fecha_solo_mes, ubicacion, localidad, telefono, web_url, instagram_url, facebook_url, imagen, estado, usa_whatsapp")
         .or("estado.is.null,estado.eq.activo")
         .or(buildActiveEventsFilter(today))
         .order("fecha", { ascending: true }),
       supabaseServer
         .from("cursos")
-        .select("id, nombre, descripcion, responsable, contacto, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
+        .select("id, nombre, descripcion, responsable, contacto, localidad, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
         .or("estado.is.null,estado.eq.activo")
         .order("id", { ascending: false })
         .limit(24),
       supabaseServer
         .from("servicios")
-        .select("id, nombre, categoria, descripcion, premium_detalle, premium_galeria, premium_activo, responsable, contacto, direccion, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
+        .select("id, nombre, categoria, descripcion, premium_detalle, premium_galeria, premium_activo, responsable, contacto, direccion, localidad, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
         .or("estado.is.null,estado.eq.activo")
         .order("id", { ascending: false })
         .limit(48),
       supabaseServer
         .from("instituciones")
-        .select("id, nombre, descripcion, direccion, telefono, web_url, instagram_url, facebook_url, foto, usa_whatsapp")
+        .select("id, nombre, descripcion, direccion, localidad, telefono, web_url, instagram_url, facebook_url, foto, usa_whatsapp")
         .or("estado.is.null,estado.eq.activo")
         .order("id", { ascending: false })
         .limit(10),

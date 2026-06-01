@@ -15,6 +15,7 @@ import { recordContentVisit, recordSiteVisit } from "../../lib/contentVisits"
 import { formatEventDateRange } from "../../lib/eventDates"
 import { fetchEventLikes, recordEventLike } from "../../lib/eventLikes"
 import { parseEventDescription } from "../../lib/eventSubmissionMeta"
+import { getGoogleMapsSearchUrl } from "../../lib/maps"
 import { buildPublicNav } from "../../lib/publicNav"
 import { recordViewMore } from "../../lib/viewMoreTracking"
 
@@ -27,6 +28,7 @@ export type Evento = {
   fecha_fin?: string | null
   fecha_solo_mes?: boolean | null
   ubicacion: string
+  localidad?: string | null
   telefono?: string | null
   web_url?: string | null
   instagram_url?: string | null
@@ -155,7 +157,7 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
         normalizeEventCategory(evento.categoria) === categoria
       const matchesSearch =
         !term ||
-        `${evento.titulo} ${parseEventDescription(evento.descripcion).baseDescription} ${evento.ubicacion || ""} ${evento.fecha || ""} ${normalizeEventCategory(evento.categoria)}`
+        `${evento.titulo} ${parseEventDescription(evento.descripcion).baseDescription} ${evento.ubicacion || ""} ${evento.localidad || ""} ${evento.fecha || ""} ${normalizeEventCategory(evento.categoria)}`
           .toLowerCase()
           .includes(term)
 
@@ -185,7 +187,18 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
               }]
             : []),
           ...(selectedEvento?.ubicacion
-            ? [{ icon: MapPin, text: selectedEvento.ubicacion }]
+            ? [{
+                icon: MapPin,
+                text: selectedEvento.ubicacion,
+                href: getGoogleMapsSearchUrl(
+                  selectedEvento.titulo,
+                  selectedEvento.ubicacion,
+                  selectedEvento.localidad
+                ),
+              }]
+            : []),
+          ...(selectedEvento?.localidad
+            ? [{ icon: MapPin, text: selectedEvento.localidad }]
             : []),
           ...(selectedEvento?.telefono
             ? [{ icon: Phone, text: selectedEvento.telefono }]
@@ -356,9 +369,27 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
                   Fecha: {formatEventDateRange(evento.fecha, evento.fecha_fin, evento.fecha_solo_mes ?? false)}
                 </p>
 
-                <p className="mt-1 text-sm text-gray-600">
+                <a
+                  href={
+                    getGoogleMapsSearchUrl(
+                      evento.titulo,
+                      evento.ubicacion,
+                      evento.localidad
+                    ) || "#"
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(event) => event.stopPropagation()}
+                  className="mt-1 block text-sm text-sky-700 transition hover:text-sky-800"
+                >
                   Ubicacion: {evento.ubicacion}
-                </p>
+                </a>
+
+                {evento.localidad ? (
+                  <p className="mt-1 text-sm font-medium text-sky-700">
+                    Localidad: {evento.localidad}
+                  </p>
+                ) : null}
 
                 {evento.telefono && (
                   <p className="mt-1 text-sm text-gray-600">

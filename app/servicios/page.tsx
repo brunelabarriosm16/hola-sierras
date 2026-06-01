@@ -9,7 +9,7 @@ const getServicios = unstable_cache(
   async () => {
     const { data } = await supabaseServer
       .from("servicios")
-      .select("id, nombre, categoria, descripcion, premium_detalle, premium_galeria, premium_activo, responsable, contacto, direccion, web_url, instagram_url, facebook_url, imagen, estado, usa_whatsapp")
+      .select("id, nombre, categoria, descripcion, premium_detalle, premium_galeria, premium_activo, responsable, contacto, direccion, localidad, web_url, instagram_url, facebook_url, imagen, estado, usa_whatsapp")
       .or("estado.is.null,estado.eq.activo")
       .order("id", { ascending: false })
 
