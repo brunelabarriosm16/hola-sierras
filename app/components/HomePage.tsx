@@ -1801,19 +1801,6 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                       </a>
                     )}
 
-                    <PrimaryExternalLinkButton
-                      webUrl={business.web_url}
-                      instagramUrl={business.instagram_url}
-                      facebookUrl={business.facebook_url}
-                      section="comercios"
-                      itemId={String(business.id)}
-                      itemTitle={business.nombre}
-                      onClick={(event) => event.stopPropagation()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
-                    />
-
                     {business.premium_activo ? (
                       <Link
                         href={`/comercios/${business.id}`}
@@ -1961,19 +1948,6 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                               </a>
                             )}
                           </div>
-
-                          <PrimaryExternalLinkButton
-                            webUrl={servicio.web_url}
-                            instagramUrl={servicio.instagram_url}
-                            facebookUrl={servicio.facebook_url}
-                            section="servicios"
-                            itemId={String(servicio.id)}
-                            itemTitle={servicio.nombre}
-                            onClick={(event) => event.stopPropagation()}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
-                          />
 
                           {servicio.premium_activo ? (
                             <Link
@@ -2359,7 +2333,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                 {sobreVarela.titulo}
               </h2>
 
-              <div className="mt-8 space-y-6 text-xl leading-10 text-slate-500">
+              <div className="mt-8 space-y-6 text-xl leading-10 text-slate-800">
                 <p>{sobreVarela.texto_1}</p>
                 <p>{sobreVarela.texto_2}</p>
                 <p>{sobreVarela.texto_3}</p>
