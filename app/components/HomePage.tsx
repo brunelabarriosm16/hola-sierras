@@ -29,6 +29,7 @@ import { recordViewMore, type ViewMoreSection } from "../lib/viewMoreTracking"
 import { supabase } from "../supabase"
 import {
   ArrowRight,
+  Building2,
   CalendarDays,
   Cloud,
   CloudDrizzle,
@@ -2149,7 +2150,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
               Todavía no hay cursos o clases cargados.
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {visibleCursos.map((curso) => (
                 <div
                   key={curso.id}
@@ -2173,13 +2174,19 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                       )
                     )
                   }
-                  className="cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/90 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-30px_rgba(139,92,246,0.35)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  className="cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-30px_rgba(37,99,235,0.28)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                 >
-                  <div className="p-4 sm:p-5">
-                    <h3 className="inline-block max-w-full whitespace-normal break-words rounded-full bg-violet-50 px-3 py-1.5 text-left text-sm font-semibold leading-tight text-violet-700 ring-1 ring-violet-100 sm:text-base">
+                  <div className="bg-blue-700 p-5">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-blue-700 shadow-sm">
+                      <GraduationCap className="h-7 w-7" />
+                    </div>
+                  </div>
+
+                  <div className="p-5">
+                    <h3 className="text-xl font-semibold leading-tight text-slate-950 sm:text-2xl">
                       {curso.nombre}
                     </h3>
-                      <p className="mt-2 line-clamp-2 whitespace-pre-line text-sm leading-6 text-slate-500 sm:mt-3 sm:line-clamp-3 sm:text-base sm:leading-7">
+                      <p className="mt-3 line-clamp-2 whitespace-pre-line text-sm leading-6 text-slate-500 sm:line-clamp-3 sm:text-base sm:leading-7">
                         {curso.descripcion}
                       </p>
                     <div className="mt-3 flex items-center gap-2 text-xs text-slate-600 sm:mt-4 sm:text-sm">
@@ -2259,12 +2266,18 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                       )
                     )
                   }
-                  className="w-full max-w-[18rem] cursor-pointer rounded-[24px] border border-white/80 bg-white/90 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:shadow-[0_28px_60px_-30px_rgba(68,109,82,0.32)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  className="w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:shadow-[0_28px_60px_-30px_rgba(68,109,82,0.32)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
+                  <div className="bg-emerald-700 p-5">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-emerald-700 shadow-sm">
+                      <Building2 className="h-7 w-7" />
+                    </div>
+                  </div>
+
                   <div className="flex min-h-[170px] flex-col">
                     <div className="flex h-full flex-1 flex-col justify-between p-5">
                       <div>
-                        <h3 className="inline-block max-w-full whitespace-normal break-words rounded-full bg-emerald-50 px-3 py-1.5 text-left text-sm font-semibold leading-tight text-emerald-700 ring-1 ring-emerald-100">
+                        <h3 className="text-xl font-semibold leading-tight text-slate-950 sm:text-2xl">
                           {institucion.nombre}
                         </h3>
 
