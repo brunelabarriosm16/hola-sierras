@@ -38,6 +38,7 @@ import {
   GraduationCap,
   MapPin,
   Phone,
+  PlusCircle,
   UserRound,
   X,
 } from "lucide-react"
@@ -734,6 +735,13 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
           </button>
         </div>
       ) : null}
+      <Link
+        href="/usuarios/eventos/nuevo?public=1"
+        className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_45px_-18px_rgba(4,120,87,0.7)] transition hover:-translate-y-0.5 hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 sm:bottom-6 sm:right-6"
+      >
+        <PlusCircle className="h-5 w-5" />
+        Sumar evento
+      </Link>
 
       {WELCOME_PROMOTION_ENABLED && welcomeHighlight && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4">
@@ -2014,10 +2022,17 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
             <p className="mt-4 text-xl text-slate-500">
               Eventos, promos y sorteos activos
             </p>
-            <div className="mt-6">
+            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href="/usuarios/eventos/nuevo?public=1"
+                className="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Sumar evento
+              </Link>
               <Link
                 href="/eventos"
-                className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
               >
                 Ver todos los eventos
                 <ArrowRight className="h-4 w-4" />
