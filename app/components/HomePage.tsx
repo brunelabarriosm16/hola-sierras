@@ -2174,10 +2174,10 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                       )
                     )
                   }
-                  className="cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-30px_rgba(37,99,235,0.28)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  className="cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-30px_rgba(71,85,105,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
                 >
-                  <div className="bg-blue-700 p-5">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-blue-700 shadow-sm">
+                  <div className="bg-emerald-600 p-5">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-emerald-600 shadow-sm">
                       <GraduationCap className="h-7 w-7" />
                     </div>
                   </div>
@@ -2204,7 +2204,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                           () => setSelectedCurso(curso)
                         )
                       }}
-                      className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-blue-500 transition hover:text-blue-600 sm:mt-5 sm:text-sm"
+                      className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-600 transition hover:text-emerald-700 sm:mt-5 sm:text-sm"
                     >
                       Ver más
                       <ArrowRight className="h-4 w-4" />
@@ -2266,10 +2266,10 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                       )
                     )
                   }
-                  className="w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:shadow-[0_28px_60px_-30px_rgba(68,109,82,0.32)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  className="w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:shadow-[0_28px_60px_-30px_rgba(71,85,105,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                 >
-                  <div className="bg-emerald-700 p-5">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-emerald-700 shadow-sm">
+                  <div className="bg-sky-600 p-5">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-sky-600 shadow-sm">
                       <Building2 className="h-7 w-7" />
                     </div>
                   </div>
