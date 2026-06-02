@@ -88,7 +88,7 @@ const normalizeAdminEventCategory = (categoria?: string | null) => {
   return value
 }
 
-const categoriasEvento = ["Evento", "Promocion", "Sorteo", "Beneficio", "Consulta"]
+const categoriasEvento = ["Evento", "Promocion", "Sorteo", "Beneficio", "Consulta", "Aviso"]
 
 const isMissingRelatedEntityColumn = (message: string) =>
   message.includes("related_entity_id") || message.includes("related_entity_type")
