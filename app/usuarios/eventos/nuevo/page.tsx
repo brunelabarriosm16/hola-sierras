@@ -401,7 +401,7 @@ export default function UsuariosNuevoEventoPage() {
                   </h1>
                   <p className="mt-4 text-lg leading-8 text-slate-600">
                     {publicMode
-                      ? "Completa los datos y nos llega para revisarlo antes de publicarlo en Hola Varela."
+                      ? "Completa los datos y nos llega para revisarlo antes de publicarlo en Hola Sierras."
                       : "Puedes publicar eventos, promociones, sorteos, beneficios o consultas. Todo queda como borrador para revisarlo antes de mostrarlo."}
                   </p>
                 </div>
@@ -478,7 +478,7 @@ export default function UsuariosNuevoEventoPage() {
                         <div className="mb-4">
                           <h2 className="text-base font-semibold text-sky-950">Datos que si quedan publicados</h2>
                           <p className="mt-1 text-sm leading-6 text-sky-900">
-                            Esta informacion es la que va a verse en Hola Varela cuando el evento se publique.
+                            Esta informacion es la que va a verse en Hola Sierras cuando el evento se publique.
                           </p>
                         </div>
                       </div>
