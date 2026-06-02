@@ -2175,19 +2175,8 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                   }
                   className="cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/90 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-30px_rgba(139,92,246,0.35)] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                 >
-                  {curso.imagen && (
-                    <div className="relative h-36 w-full sm:h-56">
-                      <OptimizedImage
-                        src={curso.imagen}
-                        alt={curso.nombre}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
-                        className="object-cover"
-                      />
-                    </div>
-                  )}
-
                   <div className="p-4 sm:p-5">
-                    <h3 className="text-lg font-semibold leading-tight text-slate-900 sm:text-[22px]">
+                    <h3 className="inline-block max-w-full whitespace-normal break-words rounded-full bg-violet-50 px-3 py-1.5 text-left text-sm font-semibold leading-tight text-violet-700 ring-1 ring-violet-100 sm:text-base">
                       {curso.nombre}
                     </h3>
                       <p className="mt-2 line-clamp-2 whitespace-pre-line text-sm leading-6 text-slate-500 sm:mt-3 sm:line-clamp-3 sm:text-base sm:leading-7">
@@ -2275,7 +2264,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                   <div className="flex min-h-[170px] flex-col">
                     <div className="flex h-full flex-1 flex-col justify-between p-5">
                       <div>
-                        <h3 className="text-lg font-semibold leading-tight text-slate-900">
+                        <h3 className="inline-block max-w-full whitespace-normal break-words rounded-full bg-emerald-50 px-3 py-1.5 text-left text-sm font-semibold leading-tight text-emerald-700 ring-1 ring-emerald-100">
                           {institucion.nombre}
                         </h3>
 
