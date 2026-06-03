@@ -283,7 +283,7 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Eventos</h1>
             <p className="mt-2 text-gray-600">
-              Descubri los proximos eventos de Hola Varela
+              Descubri los proximos eventos de Hola Sierras
             </p>
           </div>
 

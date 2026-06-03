@@ -9,7 +9,7 @@ const getInstituciones = unstable_cache(
   async () => {
     const { data } = await supabaseServer
       .from("instituciones")
-      .select("id, nombre, descripcion, premium_detalle, premium_galeria, premium_activo, direccion, localidad, telefono, web_url, instagram_url, facebook_url, foto, estado, usa_whatsapp")
+      .select("id, nombre, descripcion, premium_detalle, premium_galeria, premium_extra_titulo, premium_extra_detalle, premium_extra_galeria, premium_activo, direccion, localidad, telefono, web_url, instagram_url, facebook_url, foto, estado, usa_whatsapp")
       .or("estado.is.null,estado.eq.activo")
       .order("id", { ascending: false })
 

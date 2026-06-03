@@ -21,6 +21,9 @@ type Institucion = {
   descripcion: string | null
   premium_detalle?: string | null
   premium_galeria?: string[] | null
+  premium_extra_titulo?: string | null
+  premium_extra_detalle?: string | null
+  premium_extra_galeria?: string[] | null
   premium_activo?: boolean | null
   direccion: string | null
   localidad?: string | null
@@ -61,12 +64,18 @@ export function InstitucionesPageClient({
 
     void recordViewMore("instituciones", String(institution.id), institution.nombre)
     void recordContentVisit("instituciones", String(institution.id), institution.nombre)
+
+    if (institution.premium_activo) {
+      router.replace(`/instituciones/${institution.id}`)
+      return
+    }
+
     const timeoutId = window.setTimeout(() => {
       setSelectedInstitucion(institution)
     }, 0)
 
     return () => window.clearTimeout(timeoutId)
-  }, [instituciones])
+  }, [instituciones, router])
 
   const institucionesFiltradas = useMemo(() => {
     const term = search.trim().toLowerCase()
@@ -165,6 +174,40 @@ export function InstitucionesPageClient({
                       </div>
                     ))}
                   </div>
+                </div>
+              ) : null}
+
+              {selectedInstitucion.premium_extra_titulo ||
+              selectedInstitucion.premium_extra_detalle ||
+              selectedInstitucion.premium_extra_galeria?.length ? (
+                <div className="rounded-[24px] border border-amber-100 bg-amber-50/70 p-5">
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
+                    Bloque extra
+                  </div>
+                  {selectedInstitucion.premium_extra_titulo ? (
+                    <h3 className="text-lg font-semibold text-slate-900">
+                      {selectedInstitucion.premium_extra_titulo}
+                    </h3>
+                  ) : null}
+                  {selectedInstitucion.premium_extra_detalle ? (
+                    <p className="mt-2 whitespace-pre-line text-sm leading-7 text-slate-700">
+                      {selectedInstitucion.premium_extra_detalle}
+                    </p>
+                  ) : null}
+                  {selectedInstitucion.premium_extra_galeria?.length ? (
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      {selectedInstitucion.premium_extra_galeria.map((image, index) => (
+                        <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-amber-200 bg-white">
+                          <OptimizedImage
+                            src={image}
+                            alt={`${selectedInstitucion.nombre} extra ${index + 1}`}
+                            sizes="(max-width: 768px) 50vw, 25vw"
+                            className="object-contain p-2"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>
