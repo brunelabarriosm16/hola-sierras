@@ -25,7 +25,7 @@ type RelatedEvent = {
 }
 
 type PremiumListingPageProps = {
-  kind: "comercio" | "servicio"
+  kind: "comercio" | "servicio" | "institucion"
   id: number
   title: string
   imageSrc?: string | null
@@ -69,7 +69,37 @@ export function PremiumListingPage({
   usesWhatsapp,
   relatedEvents = [],
 }: PremiumListingPageProps) {
-  const basePath = kind === "comercio" ? "/comercios" : "/servicios"
+  const sectionConfig = {
+    comercio: {
+      basePath: "/comercios",
+      nav: "comercios",
+      singular: "comercio",
+      plural: "comercios",
+      contentSection: "comercios",
+      visitKey: `comercio-premium-${id}`,
+      activityLabel: "Actividad del local",
+    },
+    servicio: {
+      basePath: "/servicios",
+      nav: "servicios",
+      singular: "servicio",
+      plural: "servicios",
+      contentSection: "servicios",
+      visitKey: `servicio-premium-${id}`,
+      activityLabel: "Actividad del perfil",
+    },
+    institucion: {
+      basePath: "/instituciones",
+      nav: "instituciones",
+      singular: "institución",
+      plural: "instituciones",
+      contentSection: "instituciones",
+      visitKey: `institucion-premium-${id}`,
+      activityLabel: "Actividad de la institución",
+    },
+  } as const
+  const config = sectionConfig[kind]
+  const basePath = config.basePath
   const shareUrl =
     typeof window === "undefined"
       ? `${basePath}/${id}`
@@ -106,16 +136,9 @@ export function PremiumListingPage({
   const selectedImage = galleryImages[selectedImageIndex] || imageSrc || null
 
   useEffect(() => {
-    void recordSiteVisit(
-      kind === "comercio" ? `comercio-premium-${id}` : `servicio-premium-${id}`,
-      title
-    )
-    void recordContentVisit(
-      kind === "comercio" ? "comercios" : "servicios",
-      String(id),
-      title
-    )
-  }, [id, kind, title])
+    void recordSiteVisit(config.visitKey, title)
+    void recordContentVisit(config.contentSection, String(id), title)
+  }, [config.contentSection, config.visitKey, id, title])
 
   const goToPrevious = () => {
     setSelectedImageIndex((current) =>
@@ -131,7 +154,7 @@ export function PremiumListingPage({
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f8fbff_0%,#eef7f2_45%,#ffffff_100%)]">
-      <PublicHeader items={buildPublicNav(kind === "comercio" ? "comercios" : "servicios")} />
+      <PublicHeader items={buildPublicNav(config.nav)} />
 
       <div className="mx-auto max-w-[1520px] px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
@@ -140,7 +163,7 @@ export function PremiumListingPage({
             className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver a {kind === "comercio" ? "comercios" : "servicios"}
+            Volver a {config.plural}
           </Link>
         </div>
 
@@ -250,7 +273,7 @@ export function PremiumListingPage({
                       <ContactActionLink
                         href={contactHref}
                         mode={usesWhatsapp === false ? "phone" : "whatsapp"}
-                        section={kind === "comercio" ? "comercios" : "servicios"}
+                        section={config.contentSection}
                         itemId={String(id)}
                         itemTitle={title}
                         target="_blank"
@@ -278,7 +301,7 @@ export function PremiumListingPage({
                       title={title}
                       text={description || premiumDetail || undefined}
                       url={shareUrl}
-                      section={kind === "comercio" ? "comercios" : "servicios"}
+                      section={config.contentSection}
                       itemId={String(id)}
                       className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-5 py-3 font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
                     />
@@ -287,7 +310,7 @@ export function PremiumListingPage({
                       webUrl={webUrl}
                       instagramUrl={instagramUrl}
                       facebookUrl={facebookUrl}
-                      section={kind === "comercio" ? "comercios" : "servicios"}
+                      section={config.contentSection}
                       itemId={String(id)}
                       itemTitle={title}
                     />
@@ -361,7 +384,7 @@ export function PremiumListingPage({
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Actividad del local
+                {config.activityLabel}
               </div>
               <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
                 Próximos eventos de {title}
@@ -379,7 +402,7 @@ export function PremiumListingPage({
             <div className="mt-6 rounded-[28px] border border-dashed border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#f4faf6_100%)] p-8">
               <h3 className="text-lg font-semibold text-slate-900">Todavía no tiene eventos activos</h3>
               <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600">
-                Cuando este perfil publique eventos y queden activos en Hola Varela, van a aparecer en esta sección.
+                Cuando este {config.singular} publique eventos y queden activos en Hola Varela, van a aparecer en esta sección.
               </p>
             </div>
           ) : (

@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import { useEffect, useState } from "react"
-import { Building2, Eye, EyeOff, Pencil, Plus, Trash2, X } from "lucide-react"
+import { Building2, Eye, EyeOff, Pencil, Plus, Star, Trash2, X } from "lucide-react"
 import { AdminConfirmModal } from "../../components/AdminConfirmModal"
 import { supabase } from "../../supabase"
 import { logAdminActivity } from "../../lib/adminActivity"
@@ -18,12 +18,24 @@ type Institucion = {
   web_url?: string | null
   instagram_url?: string | null
   facebook_url?: string | null
+  premium_detalle?: string | null
+  premium_galeria?: string[] | null
+  premium_extra_titulo?: string | null
+  premium_extra_detalle?: string | null
+  premium_extra_galeria?: string[] | null
+  premium_activo?: boolean | null
   foto: string | null
   estado?: string | null
   usa_whatsapp?: boolean | null
 }
 
-type InstitucionForm = Omit<Institucion, "id">
+type InstitucionForm = Omit<
+  Institucion,
+  "id" | "premium_galeria" | "premium_extra_galeria"
+> & {
+  premium_galeria: string
+  premium_extra_galeria: string
+}
 
 const initialForm: InstitucionForm = {
   nombre: "",
@@ -34,6 +46,12 @@ const initialForm: InstitucionForm = {
   web_url: "",
   instagram_url: "",
   facebook_url: "",
+  premium_detalle: "",
+  premium_galeria: "",
+  premium_extra_titulo: "",
+  premium_extra_detalle: "",
+  premium_extra_galeria: "",
+  premium_activo: false,
   foto: "",
   usa_whatsapp: true,
 }
@@ -103,6 +121,12 @@ export default function AdminInstitucionesPage() {
       web_url: institucion.web_url || "",
       instagram_url: institucion.instagram_url || "",
       facebook_url: institucion.facebook_url || "",
+      premium_detalle: institucion.premium_detalle || "",
+      premium_galeria: (institucion.premium_galeria || []).join("\n"),
+      premium_extra_titulo: institucion.premium_extra_titulo || "",
+      premium_extra_detalle: institucion.premium_extra_detalle || "",
+      premium_extra_galeria: (institucion.premium_extra_galeria || []).join("\n"),
+      premium_activo: institucion.premium_activo ?? false,
       foto: institucion.foto || "",
       usa_whatsapp: institucion.usa_whatsapp ?? true,
     })
@@ -175,6 +199,35 @@ export default function AdminInstitucionesPage() {
     }
   }
 
+  const handlePremiumGalleryChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "premium_galeria" | "premium_extra_galeria" = "premium_galeria"
+  ) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    try {
+      const nextImages = await Promise.all(files.map((file) => fileToDataUrl(file)))
+      setFormData((prev) => {
+        const currentImages = prev[field]
+          .split(/\r?\n/)
+          .map((item) => item.trim())
+          .filter(Boolean)
+
+        return {
+          ...prev,
+          [field]: [...currentImages, ...nextImages].join("\n"),
+        }
+      })
+    } catch (error) {
+      setSaveError(
+        error instanceof Error ? error.message : "No se pudieron cargar las imágenes premium."
+      )
+    } finally {
+      e.target.value = ""
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -189,6 +242,18 @@ export default function AdminInstitucionesPage() {
       web_url: formData.web_url?.trim() || null,
       instagram_url: formData.instagram_url?.trim() || null,
       facebook_url: formData.facebook_url?.trim() || null,
+      premium_detalle: formData.premium_detalle?.trim() || null,
+      premium_galeria: formData.premium_galeria
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter(Boolean),
+      premium_extra_titulo: formData.premium_extra_titulo?.trim() || null,
+      premium_extra_detalle: formData.premium_extra_detalle?.trim() || null,
+      premium_extra_galeria: formData.premium_extra_galeria
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter(Boolean),
+      premium_activo: formData.premium_activo ?? false,
       foto: formData.foto || null,
       estado: editingInstitucion?.estado ?? "activo",
       usa_whatsapp: formData.usa_whatsapp,
@@ -378,6 +443,211 @@ export default function AdminInstitucionesPage() {
                 />
               </div>
 
+              <div className="rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
+                <label className="flex items-center gap-3 text-sm font-medium text-slate-800">
+                  <input
+                    type="checkbox"
+                    checked={formData.premium_activo ?? false}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        premium_activo: e.target.checked,
+                      }))
+                    }
+                    className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                  />
+                  <span>Activar perfil premium para esta institución</span>
+                </label>
+
+                <div className="mt-4 grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-900">
+                      Descripción ampliada
+                    </label>
+                    <textarea
+                      value={formData.premium_detalle || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          premium_detalle: e.target.value,
+                        }))
+                      }
+                      disabled={!formData.premium_activo}
+                      className="h-32 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-violet-500 disabled:cursor-not-allowed disabled:bg-slate-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-900">
+                      Galería premium
+                    </label>
+                    <textarea
+                      value={formData.premium_galeria}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          premium_galeria: e.target.value,
+                        }))
+                      }
+                      disabled={!formData.premium_activo}
+                      placeholder={"Una URL por línea\nhttps://..."}
+                      className="h-28 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-violet-500 disabled:cursor-not-allowed disabled:bg-slate-100"
+                    />
+                    <p className="mt-2 text-xs text-slate-500">
+                      Puedes cargar varias imágenes del perfil ampliado, una por línea.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-slate-900">
+                        Título extra
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.premium_extra_titulo || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            premium_extra_titulo: e.target.value,
+                          }))
+                        }
+                        disabled={!formData.premium_activo}
+                        className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-violet-500 disabled:cursor-not-allowed disabled:bg-slate-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-slate-900">
+                        Galería extra
+                      </label>
+                      <textarea
+                        value={formData.premium_extra_galeria}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            premium_extra_galeria: e.target.value,
+                          }))
+                        }
+                        disabled={!formData.premium_activo}
+                        placeholder={"Una URL por línea\nhttps://..."}
+                        className="h-24 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-violet-500 disabled:cursor-not-allowed disabled:bg-slate-100"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-900">
+                      Detalle extra
+                    </label>
+                    <textarea
+                      value={formData.premium_extra_detalle || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          premium_extra_detalle: e.target.value,
+                        }))
+                      }
+                      disabled={!formData.premium_activo}
+                      className="h-24 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-violet-500 disabled:cursor-not-allowed disabled:bg-slate-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {formData.premium_activo ? (
+                <div className="space-y-4 rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-600">
+                      Galerías premium
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      Puedes subir imágenes para la galería principal y para una segunda galería extra.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-900">
+                      Subir imágenes a galería premium
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handlePremiumGalleryChange}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition file:mr-4 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-medium file:text-violet-700 hover:file:bg-violet-200"
+                    />
+                    {formData.premium_galeria.trim() ? (
+                      <div className="mt-4 space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          {formData.premium_galeria
+                            .split(/\r?\n/)
+                            .map((item) => item.trim())
+                            .filter(Boolean)
+                            .map((image, index) => (
+                              <img
+                                key={`${image}-${index}`}
+                                src={image}
+                                alt={`Galería premium ${index + 1}`}
+                                className="h-28 w-full rounded-2xl object-cover"
+                              />
+                            ))}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData((prev) => ({ ...prev, premium_galeria: "" }))
+                          }
+                          className="text-sm font-medium text-red-600 transition hover:text-red-500"
+                        >
+                          Limpiar galería premium
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-900">
+                      Subir imágenes a galería extra
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => void handlePremiumGalleryChange(e, "premium_extra_galeria")}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition file:mr-4 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-medium file:text-violet-700 hover:file:bg-violet-200"
+                    />
+                    {formData.premium_extra_galeria.trim() ? (
+                      <div className="mt-4 space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          {formData.premium_extra_galeria
+                            .split(/\r?\n/)
+                            .map((item) => item.trim())
+                            .filter(Boolean)
+                            .map((image, index) => (
+                              <img
+                                key={`${image}-${index}`}
+                                src={image}
+                                alt={`Galería extra ${index + 1}`}
+                                className="h-28 w-full rounded-2xl object-cover"
+                              />
+                            ))}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData((prev) => ({ ...prev, premium_extra_galeria: "" }))
+                          }
+                          className="text-sm font-medium text-red-600 transition hover:text-red-500"
+                        >
+                          Limpiar galería extra
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-900">
@@ -522,6 +792,12 @@ export default function AdminInstitucionesPage() {
                             <p className="mt-1 line-clamp-2 max-w-md whitespace-pre-line text-xs leading-5 text-slate-500">
                               {institucion.descripcion}
                             </p>
+                          ) : null}
+                          {institucion.premium_activo ? (
+                            <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700">
+                              <Star className="h-3 w-3" />
+                              Premium
+                            </span>
                           ) : null}
                         </div>
                       </div>

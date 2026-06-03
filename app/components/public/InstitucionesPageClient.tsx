@@ -1,6 +1,8 @@
 'use client'
 
+import Link from "next/link"
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react"
+import { useRouter } from "next/navigation"
 import { ArrowRight, MapPin, Phone, Search } from "lucide-react"
 import { ContactActionLink } from "../ContactActionLink"
 import { ExternalLinksButtons } from "../ExternalLinksButtons"
@@ -17,6 +19,9 @@ type Institucion = {
   id: number
   nombre: string
   descripcion: string | null
+  premium_detalle?: string | null
+  premium_galeria?: string[] | null
+  premium_activo?: boolean | null
   direccion: string | null
   localidad?: string | null
   telefono: string | null
@@ -33,6 +38,7 @@ export function InstitucionesPageClient({
 }: {
   initialInstituciones: Institucion[]
 }) {
+  const router = useRouter()
   const instituciones = initialInstituciones
   const [search, setSearch] = useState("")
   const [selectedInstitucion, setSelectedInstitucion] = useState<Institucion | null>(null)
@@ -102,6 +108,12 @@ export function InstitucionesPageClient({
     setSelectedInstitucion(institucion)
   }
 
+  const handleOpenPremiumProfile = (institucion: Institucion) => {
+    void recordViewMore("instituciones", String(institucion.id), institucion.nombre)
+    void recordContentVisit("instituciones", String(institucion.id), institucion.nombre)
+    router.push(`/instituciones/${institucion.id}`)
+  }
+
   const handleCardKeyDown = (
     event: KeyboardEvent<HTMLElement>,
     action: () => void
@@ -122,6 +134,42 @@ export function InstitucionesPageClient({
         imageAlt={selectedInstitucion?.nombre || "Institución"}
         badge="Institución"
         description={selectedInstitucion?.descripcion || null}
+        extraContent={
+          selectedInstitucion?.premium_activo ? (
+            <div className="space-y-4">
+              {selectedInstitucion.premium_detalle ? (
+                <div className="rounded-[24px] border border-violet-100 bg-violet-50/70 p-5">
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-violet-600">
+                    Perfil ampliado
+                  </div>
+                  <p className="whitespace-pre-line text-sm leading-7 text-slate-700">
+                    {selectedInstitucion.premium_detalle}
+                  </p>
+                </div>
+              ) : null}
+
+              {selectedInstitucion.premium_galeria?.length ? (
+                <div>
+                  <div className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                    Galería
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {selectedInstitucion.premium_galeria.map((image, index) => (
+                      <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                        <OptimizedImage
+                          src={image}
+                          alt={`${selectedInstitucion.nombre} ${index + 1}`}
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                          className="object-contain p-2"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null
+        }
         meta={[
           ...(selectedInstitucion?.direccion
             ? [{
@@ -173,6 +221,16 @@ export function InstitucionesPageClient({
               itemId={selectedInstitucion ? String(selectedInstitucion.id) : undefined}
               itemTitle={selectedInstitucion?.nombre}
             />
+            {selectedInstitucion?.premium_activo ? (
+              <Link
+                href={`/instituciones/${selectedInstitucion.id}`}
+                onClick={() => handleOpenPremiumProfile(selectedInstitucion)}
+                className="inline-flex items-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 px-5 py-3 font-semibold text-violet-700 transition hover:border-violet-300 hover:bg-violet-100"
+              >
+                Ver perfil completo
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            ) : null}
             {selectedInstitucion ? (
               <ShareButton
                 title={selectedInstitucion.nombre}
@@ -223,11 +281,25 @@ export function InstitucionesPageClient({
                 key={institucion.id}
                 role="button"
                 tabIndex={0}
-                onClick={() => handleOpenInstitucion(institucion)}
+                onClick={() => {
+                  if (institucion.premium_activo) {
+                    handleOpenPremiumProfile(institucion)
+                    return
+                  }
+
+                  handleOpenInstitucion(institucion)
+                }}
                 onKeyDown={(event) =>
-                  handleCardKeyDown(event, () => handleOpenInstitucion(institucion))
+                  handleCardKeyDown(event, () => {
+                    if (institucion.premium_activo) {
+                      handleOpenPremiumProfile(institucion)
+                      return
+                    }
+
+                    handleOpenInstitucion(institucion)
+                  })
                 }
-                className="cursor-pointer overflow-hidden rounded-xl border border-gray-200 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                className={`cursor-pointer overflow-hidden rounded-xl border shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${institucion.premium_activo ? "border-violet-200 bg-violet-50/20" : "border-gray-200"}`}
               >
                 {institucion.foto && (
                   <div className="relative h-56 w-full bg-slate-50">
@@ -249,11 +321,16 @@ export function InstitucionesPageClient({
                     type="button"
                     onClick={(event) => {
                       event.stopPropagation()
+                      if (institucion.premium_activo) {
+                        handleOpenPremiumProfile(institucion)
+                        return
+                      }
+
                       handleOpenInstitucion(institucion)
                     }}
                     className="mt-5 inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
                   >
-                    Ver más
+                    {institucion.premium_activo ? "Ver perfil completo" : "Ver más"}
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>

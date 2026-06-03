@@ -121,7 +121,7 @@ export const userEntityStatusCopy = {
 } as const
 
 export function supportsPremiumProfile(type: UserEntityType) {
-  return type === "comercio" || type === "servicio"
+  return type === "comercio" || type === "servicio" || type === "institucion"
 }
 
 export function normalizeUserEntityStatus(status?: string | null) {

@@ -19,7 +19,7 @@ import {
 import { supabase } from "../../supabase"
 
 type SubscriptionPlanKey = "presencia" | "destacado" | "destacado_plus"
-type EntityType = "comercio" | "servicio" | "curso"
+type EntityType = "comercio" | "servicio" | "curso" | "institucion"
 
 type SubscriptionItem = {
   id: number
@@ -39,6 +39,7 @@ const entityLabels: Record<EntityType, string> = {
   comercio: "Comercio",
   servicio: "Servicio",
   curso: "Curso",
+  institucion: "Institución",
 }
 
 const siteFieldSelection = `
@@ -78,6 +79,7 @@ export default function AdminSuscripcionesPage() {
       { data: comercios, error: comerciosError },
       { data: servicios, error: serviciosError },
       { data: cursos, error: cursosError },
+      { data: instituciones, error: institucionesError },
     ] = await Promise.all([
       supabase.from("sitio").select(siteFieldSelection).eq("id", 1).maybeSingle(),
       supabase
@@ -92,14 +94,19 @@ export default function AdminSuscripcionesPage() {
         .from("cursos")
         .select("id, nombre, plan_suscripcion, estado_suscripcion")
         .order("nombre", { ascending: true }),
+      supabase
+        .from("instituciones")
+        .select("id, nombre, plan_suscripcion, estado_suscripcion")
+        .order("nombre", { ascending: true }),
     ])
 
-    if (siteError || comerciosError || serviciosError || cursosError) {
+    if (siteError || comerciosError || serviciosError || cursosError || institucionesError) {
       setError(
         siteError?.message ||
           comerciosError?.message ||
           serviciosError?.message ||
           cursosError?.message ||
+          institucionesError?.message ||
           "No pudimos cargar las suscripciones."
       )
       setLoading(false)
@@ -111,6 +118,7 @@ export default function AdminSuscripcionesPage() {
       ...((comercios || []).map((item) => ({ ...item, entityType: "comercio" as const }))),
       ...((servicios || []).map((item) => ({ ...item, entityType: "servicio" as const }))),
       ...((cursos || []).map((item) => ({ ...item, entityType: "curso" as const }))),
+      ...((instituciones || []).map((item) => ({ ...item, entityType: "institucion" as const }))),
     ])
     setLoading(false)
   }
@@ -171,10 +179,15 @@ export default function AdminSuscripcionesPage() {
         ? "comercios"
         : item.entityType === "servicio"
           ? "servicios"
-          : "cursos"
+          : item.entityType === "curso"
+            ? "cursos"
+            : "instituciones"
 
     const payload = {
       ...changes,
+      ...(item.entityType === "institucion" && changes.plan_suscripcion
+        ? { premium_activo: changes.plan_suscripcion !== "presencia" }
+        : {}),
       suscripcion_actualizada_at: new Date().toISOString(),
     }
 

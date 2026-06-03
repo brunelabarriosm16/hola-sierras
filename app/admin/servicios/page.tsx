@@ -29,6 +29,9 @@ type Servicio = {
   descripcion: string | null
   premium_detalle?: string | null
   premium_galeria?: string[] | null
+  premium_extra_titulo?: string | null
+  premium_extra_detalle?: string | null
+  premium_extra_galeria?: string[] | null
   premium_activo?: boolean | null
   plan_suscripcion?: SubscriptionPlanKey | null
   estado_suscripcion?: SubscriptionStatusKey | null
@@ -53,6 +56,9 @@ type ServicioForm = {
   descripcion: string
   premium_detalle: string
   premium_galeria: string
+  premium_extra_titulo: string
+  premium_extra_detalle: string
+  premium_extra_galeria: string
   premium_activo: boolean
   responsable: string
   contacto: string
@@ -71,6 +77,9 @@ const initialForm: ServicioForm = {
   descripcion: "",
   premium_detalle: "",
   premium_galeria: "",
+  premium_extra_titulo: "",
+  premium_extra_detalle: "",
+  premium_extra_galeria: "",
   premium_activo: false,
   responsable: "",
   contacto: "",
@@ -168,6 +177,9 @@ export default function AdminServiciosPage() {
       descripcion: servicio.descripcion || "",
       premium_detalle: servicio.premium_detalle || "",
       premium_galeria: (servicio.premium_galeria || []).join("\n"),
+      premium_extra_titulo: servicio.premium_extra_titulo || "",
+      premium_extra_detalle: servicio.premium_extra_detalle || "",
+      premium_extra_galeria: (servicio.premium_extra_galeria || []).join("\n"),
       premium_activo: servicio.premium_activo ?? false,
       responsable: servicio.responsable || "",
       contacto: servicio.contacto || "",
@@ -268,6 +280,35 @@ export default function AdminServiciosPage() {
     }
   }
 
+  const handlePremiumGalleryChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "premium_galeria" | "premium_extra_galeria" = "premium_galeria"
+  ) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    try {
+      const nextImages = await Promise.all(files.map((file) => fileToDataUrl(file)))
+      setFormData((prev) => {
+        const currentImages = prev[field]
+          .split(/\r?\n/)
+          .map((item) => item.trim())
+          .filter(Boolean)
+
+        return {
+          ...prev,
+          [field]: [...currentImages, ...nextImages].join("\n"),
+        }
+      })
+    } catch (error) {
+      setSaveError(
+        error instanceof Error ? error.message : "No se pudieron cargar las imágenes premium."
+      )
+    } finally {
+      e.target.value = ""
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -287,6 +328,12 @@ export default function AdminServiciosPage() {
       descripcion: formData.descripcion || null,
       premium_detalle: formData.premium_detalle.trim() || null,
       premium_galeria: formData.premium_galeria
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter(Boolean),
+      premium_extra_titulo: formData.premium_extra_titulo.trim() || null,
+      premium_extra_detalle: formData.premium_extra_detalle.trim() || null,
+      premium_extra_galeria: formData.premium_extra_galeria
         .split(/\r?\n/)
         .map((item) => item.trim())
         .filter(Boolean),
@@ -531,6 +578,153 @@ export default function AdminServiciosPage() {
                   </div>
                 </div>
               </div>
+
+              {formData.premium_activo ? (
+                <div className="space-y-4 rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-600">
+                      Galerías premium
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      Puedes subir imágenes para la galería principal y otra galería extra para destacar más contenido.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-900">
+                      Subir imágenes a galería premium
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handlePremiumGalleryChange}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition file:mr-4 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-medium file:text-violet-700 hover:file:bg-violet-200"
+                    />
+                    {formData.premium_galeria.trim() ? (
+                      <div className="mt-4 space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          {formData.premium_galeria
+                            .split(/\r?\n/)
+                            .map((item) => item.trim())
+                            .filter(Boolean)
+                            .map((image, index) => (
+                              <img
+                                key={`${image}-${index}`}
+                                src={image}
+                                alt={`Galería premium ${index + 1}`}
+                                className="h-28 w-full rounded-2xl object-cover"
+                              />
+                            ))}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData((prev) => ({ ...prev, premium_galeria: "" }))
+                          }
+                          className="text-sm font-medium text-red-600 transition hover:text-red-500"
+                        >
+                          Limpiar galería premium
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="rounded-2xl border border-white/80 bg-white/70 p-4">
+                    <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-violet-600">
+                      Bloque extra
+                    </div>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-slate-900">
+                          Título del bloque extra
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.premium_extra_titulo}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              premium_extra_titulo: e.target.value,
+                            }))
+                          }
+                          className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-violet-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-slate-900">
+                          Descripción del bloque extra
+                        </label>
+                        <textarea
+                          value={formData.premium_extra_detalle}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              premium_extra_detalle: e.target.value,
+                            }))
+                          }
+                          className="h-28 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-violet-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-slate-900">
+                          Galería del bloque extra
+                        </label>
+                        <textarea
+                          value={formData.premium_extra_galeria}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              premium_extra_galeria: e.target.value,
+                            }))
+                          }
+                          placeholder={"Una URL por línea\nhttps://..."}
+                          className="h-28 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-violet-500"
+                        />
+                        <p className="mt-2 text-xs text-slate-500">
+                          Puedes sumar otra galería para destacar trabajos, ambientes o contenido adicional.
+                        </p>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => void handlePremiumGalleryChange(e, "premium_extra_galeria")}
+                          className="mt-3 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition file:mr-4 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:font-medium file:text-violet-700 hover:file:bg-violet-200"
+                        />
+                        {formData.premium_extra_galeria.trim() ? (
+                          <div className="mt-4 space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              {formData.premium_extra_galeria
+                                .split(/\r?\n/)
+                                .map((item) => item.trim())
+                                .filter(Boolean)
+                                .map((image, index) => (
+                                  <img
+                                    key={`${image}-${index}`}
+                                    src={image}
+                                    alt={`Galería extra ${index + 1}`}
+                                    className="h-28 w-full rounded-2xl object-cover"
+                                  />
+                                ))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFormData((prev) => ({ ...prev, premium_extra_galeria: "" }))
+                              }
+                              className="text-sm font-medium text-red-600 transition hover:text-red-500"
+                            >
+                              Limpiar galería extra
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>

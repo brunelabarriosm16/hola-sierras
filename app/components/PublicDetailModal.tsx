@@ -69,7 +69,7 @@ export function PublicDetailModal({
         </div>
       ) : null}
 
-      <div className="relative max-h-[92vh] w-full max-w-6xl overflow-y-auto rounded-[32px] border border-white/70 bg-white shadow-[0_30px_120px_-34px_rgba(15,23,42,0.55)] xl:overflow-hidden">
+      <div className="relative max-h-[92vh] w-full max-w-7xl overflow-y-auto rounded-[32px] border border-white/70 bg-white shadow-[0_30px_120px_-34px_rgba(15,23,42,0.55)] xl:overflow-hidden">
         <button
           type="button"
           onClick={onClose}
@@ -79,14 +79,14 @@ export function PublicDetailModal({
           <X className="h-5 w-5" />
         </button>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,560px)_minmax(360px,420px)] xl:justify-center">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,440px)_minmax(520px,680px)] xl:justify-center">
           <div className="relative bg-[radial-gradient(circle_at_top_left,#e8f6ec_0%,#f4f9ff_38%,#eef4ff_100%)]">
             {imageSrc ? (
-              <div className="flex min-h-[240px] w-full items-center justify-center p-4 md:min-h-[320px] md:p-6 xl:min-h-[520px] xl:p-7">
+              <div className="flex min-h-[220px] w-full items-center justify-center p-4 md:min-h-[300px] md:p-6 xl:min-h-[460px] xl:p-6">
                 <button
                   type="button"
                   onClick={() => setIsImageZoomed(true)}
-                  className="group relative aspect-[4/3] w-full max-w-[520px] overflow-hidden rounded-[30px] border border-white/80 bg-white/90 p-3 shadow-[0_28px_80px_-36px_rgba(15,23,42,0.45)] transition hover:scale-[1.01] hover:shadow-[0_32px_90px_-34px_rgba(15,23,42,0.5)] md:p-4 xl:max-h-[460px]"
+                  className="group relative aspect-[4/3] w-full max-w-[440px] overflow-hidden rounded-[30px] border border-white/80 bg-white/90 p-3 shadow-[0_28px_80px_-36px_rgba(15,23,42,0.45)] transition hover:scale-[1.01] hover:shadow-[0_32px_90px_-34px_rgba(15,23,42,0.5)] md:p-4 xl:max-h-[380px]"
                   aria-label="Ver imagen mas grande"
                 >
                   <span className="absolute left-4 top-4 z-10 rounded-full bg-slate-950/75 px-3 py-1 text-xs font-semibold tracking-[0.2em] text-white/90 uppercase">
@@ -95,8 +95,8 @@ export function PublicDetailModal({
                   <OptimizedImage
                     src={imageSrc}
                     alt={imageAlt}
-                    sizes="(max-width: 1024px) 100vw, 520px"
-                    className="object-contain p-4 sm:p-6"
+                    sizes="(max-width: 1024px) 100vw, 440px"
+                    className="object-contain p-3 sm:p-5"
                   />
                 </button>
               </div>

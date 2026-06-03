@@ -71,6 +71,15 @@ alter table public.servicios
 add column if not exists premium_galeria text[];
 
 alter table public.servicios
+add column if not exists premium_extra_titulo text;
+
+alter table public.servicios
+add column if not exists premium_extra_detalle text;
+
+alter table public.servicios
+add column if not exists premium_extra_galeria text[];
+
+alter table public.servicios
 add column if not exists premium_activo boolean default false;
 
 alter table public.servicios
@@ -160,6 +169,36 @@ add column if not exists instagram_url text;
 alter table public.instituciones
 add column if not exists facebook_url text;
 
+alter table public.instituciones
+add column if not exists premium_detalle text;
+
+alter table public.instituciones
+add column if not exists premium_galeria text[];
+
+alter table public.instituciones
+add column if not exists premium_extra_titulo text;
+
+alter table public.instituciones
+add column if not exists premium_extra_detalle text;
+
+alter table public.instituciones
+add column if not exists premium_extra_galeria text[];
+
+alter table public.instituciones
+add column if not exists premium_activo boolean default false;
+
+alter table public.instituciones
+add column if not exists plan_suscripcion text;
+
+alter table public.instituciones
+add column if not exists estado_suscripcion text default 'pendiente';
+
+alter table public.instituciones
+add column if not exists suscripcion_actualizada_at timestamp with time zone;
+
+alter table public.instituciones
+add column if not exists mp_preapproval_id text;
+
 alter table public.sitio
 add column if not exists plan_presencia_titulo text;
 
@@ -230,6 +269,9 @@ create table if not exists public.servicios (
   estado_suscripcion text default 'pendiente',
   premium_detalle text,
   premium_galeria text[],
+  premium_extra_titulo text,
+  premium_extra_detalle text,
+  premium_extra_galeria text[],
   premium_activo boolean default false,
   responsable text,
   contacto text,
@@ -524,6 +566,9 @@ on public.cursos (destacado, id desc);
 
 create index if not exists instituciones_estado_id_idx
 on public.instituciones (estado, id desc);
+
+create index if not exists instituciones_plan_suscripcion_id_idx
+on public.instituciones (plan_suscripcion, id desc);
 
 create index if not exists eventos_estado_fecha_idx
 on public.eventos (estado, fecha, fecha_fin);
