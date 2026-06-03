@@ -735,14 +735,6 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
           </button>
         </div>
       ) : null}
-      <Link
-        href="/usuarios/eventos/nuevo?public=1"
-        className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_45px_-18px_rgba(4,120,87,0.7)] transition hover:-translate-y-0.5 hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 sm:bottom-6 sm:right-6"
-      >
-        <PlusCircle className="h-5 w-5" />
-        Sumar evento
-      </Link>
-
       {WELCOME_PROMOTION_ENABLED && welcomeHighlight && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4">
           <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[28px] bg-white shadow-2xl">
@@ -1616,11 +1608,18 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link
+              href="/usuarios/eventos/nuevo?public=1"
+              className="inline-flex min-w-[190px] items-center justify-center gap-3 rounded-2xl bg-[linear-gradient(135deg,#16a34a_0%,#0ea5e9_100%)] px-8 py-4 text-base font-semibold text-white shadow-[0_18px_40px_-20px_rgba(14,165,233,0.85)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_46px_-22px_rgba(22,163,74,0.9)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+            >
+              <PlusCircle className="h-5 w-5" />
+              Sumar evento
+            </Link>
             <button
               onClick={() =>
                 document.getElementById("eventos")?.scrollIntoView({ behavior: "smooth" })
               }
-              className="inline-flex items-center gap-3 rounded-2xl bg-slate-950 px-8 py-4 text-base font-semibold text-white shadow-[0_18px_40px_-20px_rgba(15,23,42,0.85)] transition hover:-translate-y-0.5 hover:bg-slate-900"
+              className="inline-flex min-w-[190px] items-center justify-center gap-3 rounded-2xl bg-slate-950 px-8 py-4 text-base font-semibold text-white shadow-[0_18px_40px_-20px_rgba(15,23,42,0.85)] transition hover:-translate-y-0.5 hover:bg-slate-900"
             >
               Ver novedades
               <ArrowRight className="h-5 w-5" />
@@ -2023,13 +2022,6 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
               Eventos, promos y sorteos activos
             </p>
             <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                href="/usuarios/eventos/nuevo?public=1"
-                className="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600"
-              >
-                <PlusCircle className="h-4 w-4" />
-                Sumar evento
-              </Link>
               <Link
                 href="/eventos"
                 className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
