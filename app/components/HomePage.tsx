@@ -1598,8 +1598,9 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
           </div>
 
           <div className="mx-auto max-w-5xl">
-            <h1 className="text-4xl font-bold leading-[1.05] tracking-tight text-slate-950 sm:text-5xl lg:text-7xl">
-              Cartelera online de las sierras
+            <h1 className="text-4xl font-bold leading-[1.05] tracking-normal text-slate-950 sm:text-5xl lg:text-7xl">
+              CARTELERA DIGITAL
+              <span className="block text-emerald-900">de las sierras</span>
             </h1>
           </div>
 

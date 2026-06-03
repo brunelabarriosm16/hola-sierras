@@ -45,14 +45,14 @@ export function PublicHeader({
               className="flex items-center gap-3"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              <div className="relative h-14 w-20 overflow-hidden sm:h-16 sm:w-24">
+              <div className="relative h-14 w-24 overflow-hidden sm:h-16 sm:w-28">
                 <Image
                   src="/HolaSierras.png"
                   alt="Hola Sierras"
                   fill
                   priority
-                  sizes="96px"
-                  className="object-contain object-left scale-[1.7] sm:scale-[1.85]"
+                  sizes="180px"
+                  className="object-contain object-left"
                 />
               </div>
               <div className="leading-tight">
