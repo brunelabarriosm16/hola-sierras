@@ -199,7 +199,7 @@ export function PremiumListingPage({
 
         <section className="overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-[0_24px_80px_-36px_rgba(15,23,42,0.35)]">
           <div className="grid xl:grid-cols-[0.45fr_1.55fr]">
-            <div className="bg-[radial-gradient(circle_at_top_left,#e8f6ec_0%,#f4f9ff_38%,#eef4ff_100%)] p-5 sm:p-7 lg:p-10">
+            <div className="order-2 bg-[radial-gradient(circle_at_top_left,#e8f6ec_0%,#f4f9ff_38%,#eef4ff_100%)] p-5 sm:p-7 lg:p-10 xl:order-1 xl:row-span-2">
               <div className="overflow-hidden rounded-[30px] border border-white/80 bg-white/90 shadow-[0_28px_80px_-36px_rgba(15,23,42,0.45)]">
                 {selectedImage ? (
                   <button
@@ -283,7 +283,7 @@ export function PremiumListingPage({
               ) : null}
             </div>
 
-            <div className="bg-white p-6 sm:p-8 lg:p-10">
+            <div className="order-1 bg-white p-6 pb-0 sm:p-8 sm:pb-0 lg:p-10 lg:pb-0 xl:order-2">
               <div className="rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-6">
                 {category ? (
                   <div className="inline-flex rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700">
@@ -357,9 +357,11 @@ export function PremiumListingPage({
                   </div>
                 </div>
               </div>
+            </div>
 
+            <div className="order-3 bg-white px-6 pb-6 pt-6 sm:px-8 sm:pb-8 lg:px-10 lg:pb-10 xl:order-3">
               {description ? (
-                <div className="mt-6 rounded-[24px] border border-slate-100 bg-slate-50/80 p-6">
+                <div className="rounded-[24px] border border-slate-100 bg-slate-50/80 p-6">
                   <div className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
                     Sobre este perfil
                   </div>
@@ -370,7 +372,7 @@ export function PremiumListingPage({
               ) : null}
 
               {premiumDetail ? (
-                <div className="mt-5 rounded-[24px] border border-sky-100 bg-sky-50/70 p-6">
+                <div className={`${description ? "mt-5" : ""} rounded-[24px] border border-sky-100 bg-sky-50/70 p-6`}>
                   <div className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">
                     Información ampliada
                   </div>
@@ -381,7 +383,7 @@ export function PremiumListingPage({
               ) : null}
 
               {premiumExtraTitle || premiumExtraDetail || premiumExtraGallery?.length ? (
-                <div className="mt-5 rounded-[24px] border border-amber-100 bg-amber-50/70 p-6">
+                <div className={`${description || premiumDetail ? "mt-5" : ""} rounded-[24px] border border-amber-100 bg-amber-50/70 p-6`}>
                   <div className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-amber-700">
                     Bloque extra
                   </div>
