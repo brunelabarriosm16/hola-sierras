@@ -257,7 +257,7 @@ export function PremiumListingPage({
                       </button>
                     </div>
                   </div>
-                  <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+                  <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-3">
                     {galleryImages.map((image, index) => (
                       <button
                         type="button"
