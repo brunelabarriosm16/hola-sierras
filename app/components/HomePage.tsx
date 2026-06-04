@@ -145,6 +145,7 @@ type Institucion = {
   id: number
   nombre: string
   descripcion: string | null
+  premium_activo?: boolean | null
   direccion: string | null
   localidad?: string | null
   telefono: string | null
@@ -602,6 +603,22 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
     void recordViewMore(section, itemId, itemTitle)
     void recordContentVisit(section, itemId, itemTitle)
     open()
+  }
+
+  const handleOpenInstitucion = (institucion: Institucion) => {
+    handleViewMoreClick(
+      "instituciones",
+      String(institucion.id),
+      institucion.nombre,
+      () => {
+        if (institucion.premium_activo) {
+          router.push(`/instituciones/${institucion.id}`)
+          return
+        }
+
+        setSelectedInstitucion(institucion)
+      }
+    )
   }
 
   const handleCardKeyDown = (
@@ -2256,22 +2273,10 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                   key={institucion.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() =>
-                    handleViewMoreClick(
-                      "instituciones",
-                      String(institucion.id),
-                      institucion.nombre,
-                      () => setSelectedInstitucion(institucion)
-                    )
-                  }
+                  onClick={() => handleOpenInstitucion(institucion)}
                   onKeyDown={(event) =>
                     handleCardKeyDown(event, () =>
-                      handleViewMoreClick(
-                        "instituciones",
-                        String(institucion.id),
-                        institucion.nombre,
-                        () => setSelectedInstitucion(institucion)
-                      )
+                      handleOpenInstitucion(institucion)
                     )
                   }
                   className="w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:shadow-[0_28px_60px_-30px_rgba(71,85,105,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
@@ -2312,12 +2317,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                         type="button"
                         onClick={(event) => {
                           event.stopPropagation()
-                          handleViewMoreClick(
-                            "instituciones",
-                            String(institucion.id),
-                            institucion.nombre,
-                            () => setSelectedInstitucion(institucion)
-                          )
+                          handleOpenInstitucion(institucion)
                         }}
                         className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"
                       >

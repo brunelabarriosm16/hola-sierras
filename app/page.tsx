@@ -56,7 +56,7 @@ const getHomeSupabaseData = unstable_cache(
         .limit(48),
       supabaseServer
         .from("instituciones")
-        .select("id, nombre, descripcion, direccion, localidad, telefono, web_url, instagram_url, facebook_url, foto, usa_whatsapp")
+        .select("id, nombre, descripcion, premium_activo, direccion, localidad, telefono, web_url, instagram_url, facebook_url, foto, usa_whatsapp")
         .or("estado.is.null,estado.eq.activo")
         .order("id", { ascending: false })
         .limit(10),
@@ -80,7 +80,7 @@ const getHomeSupabaseData = unstable_cache(
         : defaultSobreVarela,
     } satisfies Omit<HomePageData, "weather">
   },
-  ["home-supabase-data"],
+  ["home-supabase-data-v2"],
   { revalidate: 3600 }
 )
 
