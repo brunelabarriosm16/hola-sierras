@@ -205,7 +205,8 @@ export function PremiumListingPage({
                   <button
                     type="button"
                     onClick={() => openGalleryAt(selectedImageIndex)}
-                    className="relative block aspect-[16/10] w-full cursor-zoom-in"
+                    onMouseDown={() => openGalleryAt(selectedImageIndex)}
+                    className="relative block aspect-[16/10] w-full cursor-zoom-in overflow-hidden bg-white"
                     aria-label={`Abrir imagen grande de ${title}`}
                   >
                     <OptimizedImage
@@ -213,8 +214,11 @@ export function PremiumListingPage({
                       alt={title}
                       sizes="(max-width: 1280px) 100vw, 65vw"
                       priority
-                      className="object-contain bg-white"
+                      className="pointer-events-none object-contain bg-white"
                     />
+                    <span className="absolute bottom-3 right-3 rounded-full bg-slate-950/70 px-3 py-1 text-xs font-semibold text-white">
+                      Ampliar
+                    </span>
                   </button>
                 ) : (
                   <div className="flex min-h-[320px] items-center justify-center text-slate-400">
@@ -259,6 +263,7 @@ export function PremiumListingPage({
                         type="button"
                         key={`${image}-${index}`}
                         onClick={() => openGalleryAt(index)}
+                        onMouseDown={() => openGalleryAt(index)}
                         className={`relative aspect-[4/3] cursor-zoom-in overflow-hidden rounded-[24px] border bg-white shadow-sm transition ${
                           selectedImageIndex === index
                             ? "border-blue-400 ring-2 ring-blue-100"
@@ -269,7 +274,7 @@ export function PremiumListingPage({
                           src={image}
                           alt={`${title} ${index + 1}`}
                           sizes="(max-width: 768px) 50vw, 25vw"
-                          className="object-contain p-2"
+                          className="pointer-events-none object-contain p-2"
                         />
                       </button>
                     ))}
@@ -397,13 +402,14 @@ export function PremiumListingPage({
                           type="button"
                           key={`${image}-${index}`}
                           onClick={() => openGalleryAt(galleryImages.indexOf(image))}
+                          onMouseDown={() => openGalleryAt(galleryImages.indexOf(image))}
                           className="relative aspect-[4/3] cursor-zoom-in overflow-hidden rounded-[22px] border border-amber-200 bg-white"
                         >
                           <OptimizedImage
                             src={image}
                             alt={`${premiumExtraTitle || title} ${index + 1}`}
                             sizes="(max-width: 768px) 50vw, 33vw"
-                            className="object-contain p-2"
+                            className="pointer-events-none object-contain p-2"
                           />
                         </button>
                       ))}
@@ -492,7 +498,7 @@ export function PremiumListingPage({
 
       {isGalleryOpen && selectedImage ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 px-4 py-6"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 px-4 py-6"
           role="dialog"
           aria-modal="true"
           aria-label={`Galeria de imagenes de ${title}`}
