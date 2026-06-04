@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useEffect, useMemo, useState, type ReactNode } from "react"
-import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, MapPin, Phone, UserRound } from "lucide-react"
+import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, MapPin, Phone, UserRound, X } from "lucide-react"
 import { ContactActionLink } from "../ContactActionLink"
 import { ExternalLinksButtons } from "../ExternalLinksButtons"
 import { OptimizedImage } from "../OptimizedImage"
@@ -133,12 +133,42 @@ export function PremiumListingPage({
     [imageSrc, premiumGallery, premiumExtraGallery]
   )
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false)
   const selectedImage = galleryImages[selectedImageIndex] || imageSrc || null
 
   useEffect(() => {
     void recordSiteVisit(config.visitKey, title)
     void recordContentVisit(config.contentSection, String(id), title)
   }, [config.contentSection, config.visitKey, id, title])
+
+  useEffect(() => {
+    if (!isGalleryOpen) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsGalleryOpen(false)
+      }
+
+      if (event.key === "ArrowLeft") {
+        goToPrevious()
+      }
+
+      if (event.key === "ArrowRight") {
+        goToNext()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [isGalleryOpen, galleryImages.length])
+
+  const openGalleryAt = (index: number) => {
+    if (index < 0 || galleryImages.length === 0) return
+
+    setSelectedImageIndex(index)
+    setIsGalleryOpen(true)
+  }
 
   const goToPrevious = () => {
     setSelectedImageIndex((current) =>
@@ -168,11 +198,16 @@ export function PremiumListingPage({
         </div>
 
         <section className="overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-[0_24px_80px_-36px_rgba(15,23,42,0.35)]">
-          <div className="grid xl:grid-cols-[0.71fr_1.29fr]">
+          <div className="grid xl:grid-cols-[0.45fr_1.55fr]">
             <div className="bg-[radial-gradient(circle_at_top_left,#e8f6ec_0%,#f4f9ff_38%,#eef4ff_100%)] p-5 sm:p-7 lg:p-10">
               <div className="overflow-hidden rounded-[30px] border border-white/80 bg-white/90 shadow-[0_28px_80px_-36px_rgba(15,23,42,0.45)]">
                 {selectedImage ? (
-                  <div className="relative aspect-[16/10] w-full">
+                  <button
+                    type="button"
+                    onClick={() => openGalleryAt(selectedImageIndex)}
+                    className="relative block aspect-[16/10] w-full cursor-zoom-in"
+                    aria-label={`Abrir imagen grande de ${title}`}
+                  >
                     <OptimizedImage
                       src={selectedImage}
                       alt={title}
@@ -180,7 +215,7 @@ export function PremiumListingPage({
                       priority
                       className="object-contain bg-white"
                     />
-                  </div>
+                  </button>
                 ) : (
                   <div className="flex min-h-[320px] items-center justify-center text-slate-400">
                     Sin imagen principal
@@ -223,8 +258,8 @@ export function PremiumListingPage({
                       <button
                         type="button"
                         key={`${image}-${index}`}
-                        onClick={() => setSelectedImageIndex(index)}
-                        className={`relative aspect-[4/3] overflow-hidden rounded-[24px] border bg-white shadow-sm transition ${
+                        onClick={() => openGalleryAt(index)}
+                        className={`relative aspect-[4/3] cursor-zoom-in overflow-hidden rounded-[24px] border bg-white shadow-sm transition ${
                           selectedImageIndex === index
                             ? "border-blue-400 ring-2 ring-blue-100"
                             : "border-slate-200 hover:border-blue-300"
@@ -361,8 +396,8 @@ export function PremiumListingPage({
                         <button
                           type="button"
                           key={`${image}-${index}`}
-                          onClick={() => setSelectedImageIndex(galleryImages.indexOf(image))}
-                          className="relative aspect-[4/3] overflow-hidden rounded-[22px] border border-amber-200 bg-white"
+                          onClick={() => openGalleryAt(galleryImages.indexOf(image))}
+                          className="relative aspect-[4/3] cursor-zoom-in overflow-hidden rounded-[22px] border border-amber-200 bg-white"
                         >
                           <OptimizedImage
                             src={image}
@@ -454,6 +489,62 @@ export function PremiumListingPage({
           )}
         </section>
       </div>
+
+      {isGalleryOpen && selectedImage ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 px-4 py-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Galeria de imagenes de ${title}`}
+        >
+          <button
+            type="button"
+            onClick={() => setIsGalleryOpen(false)}
+            className="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+            aria-label="Cerrar vista grande"
+          >
+            <X className="h-5 w-5" />
+          </button>
+
+          {galleryImages.length > 1 ? (
+            <button
+              type="button"
+              onClick={goToPrevious}
+              className="absolute left-4 top-1/2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+              aria-label="Imagen anterior"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+          ) : null}
+
+          <div className="relative h-[82vh] w-full max-w-6xl">
+            <OptimizedImage
+              src={selectedImage}
+              alt={`${title} ${selectedImageIndex + 1}`}
+              sizes="100vw"
+              className="object-contain"
+              priority
+            />
+          </div>
+
+          {galleryImages.length > 1 ? (
+            <>
+              <button
+                type="button"
+                onClick={goToNext}
+                className="absolute right-4 top-1/2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+                aria-label="Imagen siguiente"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white">
+                {selectedImageIndex + 1} / {galleryImages.length}
+              </div>
+            </>
+          ) : null}
+        </div>
+      ) : null}
     </main>
   )
 }

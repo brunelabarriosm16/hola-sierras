@@ -783,7 +783,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                           src={welcomeHighlight.image}
                           alt={welcomeHighlight.title}
                           sizes="(max-width: 768px) 100vw, 50vw"
-                          className="object-cover"
+                          className="object-contain p-3"
                         />
                       </button>
                     </div>
