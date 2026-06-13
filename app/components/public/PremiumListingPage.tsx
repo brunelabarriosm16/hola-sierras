@@ -449,36 +449,36 @@ export function PremiumListingPage({
               </p>
             </div>
           ) : (
-            <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-6 grid grid-cols-2 gap-3 md:gap-5 xl:grid-cols-3">
               {relatedEvents.map((event) => (
-                <article key={event.id} className="overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] shadow-sm">
+                <article key={event.id} className="overflow-hidden rounded-[20px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] shadow-sm md:rounded-[28px]">
                   {event.imagen ? (
-                    <div className="relative h-48 w-full bg-slate-50">
+                    <div className="relative h-32 w-full bg-slate-50 sm:h-48">
                       <OptimizedImage
                         src={event.imagen}
                         alt={event.titulo}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1280px) 50vw, 33vw"
                         className="object-contain p-3"
                       />
                     </div>
                   ) : (
-                    <div className="flex h-48 items-center justify-center bg-slate-100 text-slate-400">
+                    <div className="flex h-32 items-center justify-center bg-slate-100 text-slate-400 sm:h-48">
                       Sin imagen
                     </div>
                   )}
-                  <div className="p-5">
+                  <div className="p-3 md:p-5">
                     {event.categoria ? (
-                      <div className="mb-3 inline-flex rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-700">
+                      <div className="mb-2 inline-flex rounded-full bg-sky-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-sky-700 md:mb-3 md:px-3 md:text-xs">
                         {event.categoria}
                       </div>
                     ) : null}
-                    <h3 className="text-xl font-semibold text-slate-900">{event.titulo}</h3>
-                    <div className="mt-3 flex items-center gap-2 text-sm text-slate-600">
-                      <CalendarDays className="h-4 w-4 text-slate-400" />
+                    <h3 className="text-base font-semibold text-slate-900 md:text-xl">{event.titulo}</h3>
+                    <div className="mt-2 flex items-center gap-2 text-xs text-slate-600 md:mt-3 md:text-sm">
+                      <CalendarDays className="h-4 w-4 shrink-0 text-slate-400" />
                       <span>{formatEventDateRange(event.fecha, event.fecha_fin, event.fecha_solo_mes ?? false)}</span>
                     </div>
                     {event.descripcion ? (
-                      <p className="mt-4 line-clamp-4 whitespace-pre-line text-sm leading-7 text-slate-500">
+                      <p className="mt-3 line-clamp-2 whitespace-pre-line text-xs leading-6 text-slate-500 md:mt-4 md:line-clamp-4 md:text-sm md:leading-7">
                         {parseEventDescription(event.descripcion).baseDescription}
                       </p>
                     ) : null}
@@ -500,7 +500,7 @@ export function PremiumListingPage({
 
       {isGalleryOpen && selectedImage ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 px-4 py-6"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 px-4 pb-24 pt-16 sm:py-6"
           role="dialog"
           aria-modal="true"
           aria-label={`Galeria de imagenes de ${title}`}
@@ -518,14 +518,14 @@ export function PremiumListingPage({
             <button
               type="button"
               onClick={goToPrevious}
-              className="absolute left-4 top-1/2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+              className="absolute left-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 sm:inline-flex"
               aria-label="Imagen anterior"
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
           ) : null}
 
-          <div className="relative h-[82vh] w-full max-w-6xl">
+          <div className="relative h-[68vh] w-full max-w-6xl sm:h-[82vh]">
             <OptimizedImage
               src={selectedImage}
               alt={`${title} ${selectedImageIndex + 1}`}
@@ -540,14 +540,32 @@ export function PremiumListingPage({
               <button
                 type="button"
                 onClick={goToNext}
-                className="absolute right-4 top-1/2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+                className="absolute right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 sm:inline-flex"
                 aria-label="Imagen siguiente"
               >
                 <ChevronRight className="h-6 w-6" />
               </button>
 
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white">
-                {selectedImageIndex + 1} / {galleryImages.length}
+              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2">
+                <button
+                  type="button"
+                  onClick={goToPrevious}
+                  className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 sm:hidden"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Anterior
+                </button>
+                <div className="shrink-0 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white">
+                  {selectedImageIndex + 1} / {galleryImages.length}
+                </div>
+                <button
+                  type="button"
+                  onClick={goToNext}
+                  className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20 sm:hidden"
+                >
+                  Siguiente
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             </>
           ) : null}

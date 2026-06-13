@@ -337,7 +337,7 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
             </p>
           </div>
         ) : (
-          <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-3 md:gap-6 xl:grid-cols-4">
             {eventosFiltrados.map((evento) => (
               <div
                 key={evento.id}
@@ -345,27 +345,27 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
                 tabIndex={0}
                 onClick={() => handleOpenEvento(evento)}
                 onKeyDown={(event) => handleCardKeyDown(event, () => handleOpenEvento(evento))}
-                className="cursor-pointer rounded-xl border border-gray-200 p-5 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                className="cursor-pointer rounded-xl border border-gray-200 p-3 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 md:p-5"
               >
                 {evento.imagen && (
-                  <div className="relative mb-4 h-48 w-full overflow-hidden rounded-lg bg-slate-50">
+                  <div className="relative mb-3 h-32 w-full overflow-hidden rounded-lg bg-slate-50 sm:h-48 md:mb-4">
                     <OptimizedImage
                       src={evento.imagen}
                       alt={evento.titulo}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1280px) 50vw, 25vw"
                       className="object-contain p-3"
                     />
                   </div>
                 )}
 
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-base font-semibold text-gray-900 md:text-xl">
                   {evento.titulo}
                 </h2>
-                <div className="mt-3 inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                <div className="mt-2 inline-flex rounded-full bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-700 md:mt-3 md:px-3 md:text-xs">
                   {normalizeEventCategory(evento.categoria)}
                 </div>
 
-                <p className="mt-2 text-sm text-gray-600">
+                <p className="mt-2 text-xs text-gray-600 md:text-sm">
                   Fecha: {formatEventDateRange(evento.fecha, evento.fecha_fin, evento.fecha_solo_mes ?? false)}
                 </p>
 
@@ -397,7 +397,7 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
                   </p>
                 )}
 
-                <p className="line-clamp-3 mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-700">
+                <p className="line-clamp-2 mt-2 whitespace-pre-line text-xs leading-relaxed text-gray-700 md:line-clamp-3 md:mt-3 md:text-sm">
                   {parseEventDescription(evento.descripcion).baseDescription}
                 </p>
 

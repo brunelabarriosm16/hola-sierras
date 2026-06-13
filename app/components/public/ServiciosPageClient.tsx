@@ -142,6 +142,7 @@ export function ServiciosPageClient({
         title={selectedServicio?.nombre || ""}
         imageSrc={selectedServicio?.imagen || null}
         imageAlt={selectedServicio?.nombre || "Servicio"}
+        imagePlacement={selectedServicio?.premium_activo ? "side" : "top"}
         badge={selectedServicio?.categoria || null}
         description={selectedServicio?.descripcion || null}
         extraContent={
@@ -294,7 +295,7 @@ export function ServiciosPageClient({
                   <div className="h-px flex-1 bg-amber-100" />
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 md:gap-6 xl:grid-cols-4">
                   {items.map((servicio) => (
                     <div
                       key={servicio.id}
@@ -321,23 +322,23 @@ export function ServiciosPageClient({
                       className={`cursor-pointer overflow-hidden rounded-xl border shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${servicio.premium_activo ? "border-violet-200 bg-violet-50/20" : "border-gray-200"}`}
                     >
                       {servicio.imagen && (
-                        <div className="relative h-56 w-full bg-slate-50">
+                        <div className="relative h-32 w-full bg-slate-50 sm:h-56">
                           <OptimizedImage
                             src={servicio.imagen}
                             alt={servicio.nombre}
-                            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 50vw, 25vw"
                             className="object-contain p-3"
                           />
                         </div>
                       )}
 
-                      <div className="p-5">
-                        <h3 className="text-xl font-semibold text-gray-900">
+                      <div className="p-3 md:p-5">
+                        <h3 className="text-base font-semibold text-gray-900 md:text-xl">
                           {servicio.nombre}
                         </h3>
 
                         {servicio.descripcion && (
-                          <p className="line-clamp-3 mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-700">
+                          <p className="line-clamp-2 mt-2 whitespace-pre-line text-xs leading-relaxed text-gray-700 md:line-clamp-3 md:mt-3 md:text-sm">
                             {servicio.descripcion}
                           </p>
                         )}

@@ -17,6 +17,7 @@ type PublicDetailModalProps = {
   title: string
   imageSrc?: string | null
   imageAlt: string
+  imagePlacement?: "side" | "top"
   badge?: string | null
   description?: string | null
   meta?: DetailMetaItem[]
@@ -30,6 +31,7 @@ export function PublicDetailModal({
   title,
   imageSrc,
   imageAlt,
+  imagePlacement = "side",
   badge,
   description,
   meta = [],
@@ -37,6 +39,7 @@ export function PublicDetailModal({
   actions,
 }: PublicDetailModalProps) {
   const [isImageZoomed, setIsImageZoomed] = useState(false)
+  const isImageTop = imagePlacement === "top"
 
   if (!open) return null
 
@@ -79,14 +82,14 @@ export function PublicDetailModal({
           <X className="h-5 w-5" />
         </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(320px,430px)_minmax(0,1fr)]">
+        <div className={isImageTop ? "grid grid-cols-1" : "grid grid-cols-1 lg:grid-cols-[minmax(320px,430px)_minmax(0,1fr)]"}>
           <div className="relative bg-[linear-gradient(145deg,#f1f8f3_0%,#f7fbff_50%,#eef4ff_100%)]">
             {imageSrc ? (
-              <div className="flex min-h-[220px] w-full items-center justify-center p-4 md:min-h-[300px] md:p-6 lg:min-h-full">
+              <div className={isImageTop ? "flex min-h-[190px] w-full items-center justify-center p-4 md:min-h-[240px] md:p-5" : "flex min-h-[220px] w-full items-center justify-center p-4 md:min-h-[300px] md:p-6 lg:min-h-full"}>
                 <button
                   type="button"
                   onClick={() => setIsImageZoomed(true)}
-                  className="group relative aspect-[4/3] w-full max-w-[430px] overflow-hidden rounded-[24px] border border-white/80 bg-white/90 p-3 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.45)] transition hover:scale-[1.01] hover:shadow-[0_30px_80px_-34px_rgba(15,23,42,0.5)] md:p-4"
+                  className={`${isImageTop ? "max-w-[390px]" : "max-w-[430px]"} group relative aspect-[4/3] w-full overflow-hidden rounded-[24px] border border-white/80 bg-white/90 p-3 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.45)] transition hover:scale-[1.01] hover:shadow-[0_30px_80px_-34px_rgba(15,23,42,0.5)] md:p-4`}
                   aria-label="Ver imagen mas grande"
                 >
                   <span className="absolute left-4 top-4 z-10 rounded-full bg-slate-950/75 px-3 py-1 text-[0.66rem] font-semibold tracking-[0.16em] text-white/90 uppercase">
@@ -107,7 +110,7 @@ export function PublicDetailModal({
             )}
           </div>
 
-          <div className="flex flex-col bg-white lg:max-h-[92vh] lg:overflow-y-auto">
+          <div className={isImageTop ? "flex flex-col bg-white" : "flex flex-col bg-white lg:max-h-[92vh] lg:overflow-y-auto"}>
             <div className="border-b border-slate-100 px-5 pb-5 pt-7 md:px-8">
               {badge ? (
                 <div className="mb-4 flex items-start gap-3 pr-12">

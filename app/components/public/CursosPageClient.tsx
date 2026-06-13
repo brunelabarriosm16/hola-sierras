@@ -191,7 +191,7 @@ export function CursosPageClient({ initialCursos }: { initialCursos: Curso[] }) 
             </p>
           </div>
         ) : (
-          <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-3 md:gap-6 xl:grid-cols-4">
             {cursosFiltrados.map((curso) => (
               <div
                 key={curso.id}
@@ -202,22 +202,22 @@ export function CursosPageClient({ initialCursos }: { initialCursos: Curso[] }) 
                 className="cursor-pointer overflow-hidden rounded-xl border border-gray-200 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
               >
                 {curso.imagen && (
-                  <div className="relative h-56 w-full">
+                  <div className="relative h-32 w-full sm:h-56">
                     <OptimizedImage
                       src={curso.imagen}
                       alt={curso.nombre}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1280px) 50vw, 25vw"
                       className="object-cover"
                     />
                   </div>
                 )}
 
-                <div className="p-5">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                <div className="p-3 md:p-5">
+                  <h2 className="text-base font-semibold text-gray-900 md:text-xl">
                     {curso.nombre}
                   </h2>
 
-                  <p className="line-clamp-3 mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-700">
+                  <p className="line-clamp-2 mt-2 whitespace-pre-line text-xs leading-relaxed text-gray-700 md:line-clamp-3 md:mt-3 md:text-sm">
                     {curso.descripcion}
                   </p>
 

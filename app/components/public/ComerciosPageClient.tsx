@@ -132,6 +132,7 @@ export function ComerciosPageClient({
             : null
         }
         imageAlt={selectedComercio?.nombre || "Comercio"}
+        imagePlacement={selectedComercio?.premium_activo ? "side" : "top"}
         description={selectedComercio?.descripcion || null}
         extraContent={
           selectedComercio?.premium_activo ? (
@@ -267,7 +268,7 @@ export function ComerciosPageClient({
             </p>
           </div>
         ) : (
-          <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-3 md:gap-6 xl:grid-cols-4">
             {comerciosFiltrados.map((comercio) => {
               const imagenSrc = comercio.imagen || comercio.imagen_url
 
@@ -294,24 +295,24 @@ export function ComerciosPageClient({
                       handleOpenComercio(comercio)
                     })
                   }
-                  className={`cursor-pointer rounded-xl border p-5 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${comercio.premium_activo ? "border-violet-200 bg-violet-50/20" : "border-gray-200"}`}
+                  className={`cursor-pointer rounded-xl border p-3 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 md:p-5 ${comercio.premium_activo ? "border-violet-200 bg-violet-50/20" : "border-gray-200"}`}
                 >
                   {imagenSrc && (
-                    <div className="relative mb-3 h-40 w-full overflow-hidden rounded-lg bg-slate-50">
+                    <div className="relative mb-3 h-28 w-full overflow-hidden rounded-lg bg-slate-50 sm:h-40">
                       <OptimizedImage
                         src={imagenSrc}
                         alt={comercio.nombre}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1280px) 50vw, 25vw"
                         className="object-contain p-3"
                       />
                     </div>
                   )}
 
-                  <h2 className="text-lg font-semibold text-gray-900">
+                  <h2 className="text-base font-semibold text-gray-900 md:text-lg">
                     {comercio.nombre}
                   </h2>
 
-                  <p className="line-clamp-3 whitespace-pre-line text-sm text-gray-600">
+                  <p className="line-clamp-2 whitespace-pre-line text-xs text-gray-600 md:line-clamp-3 md:text-sm">
                     {comercio.descripcion}
                   </p>
 

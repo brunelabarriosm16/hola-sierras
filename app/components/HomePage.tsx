@@ -271,7 +271,7 @@ async function fetchWeatherItems() {
 
 type WelcomeHighlight = {
   key: string
-  kind: "comercio" | "servicio" | "curso"
+  kind: "comercio" | "servicio" | "curso" | "institucion"
   title: string
   description: string
   image: string | null
@@ -280,10 +280,18 @@ type WelcomeHighlight = {
   usesWhatsapp?: boolean
 }
 
+const getWelcomeSection = (kind: WelcomeHighlight["kind"]): ViewMoreSection => {
+  if (kind === "comercio") return "comercios"
+  if (kind === "servicio") return "servicios"
+  if (kind === "institucion") return "instituciones"
+  return "cursos"
+}
+
 const buildWelcomeItems = (
   featuredBusinesses: Comercio[],
   allServicios: Servicio[],
-  allCursos: Curso[]
+  allCursos: Curso[],
+  instituciones: Institucion[]
 ): WelcomeHighlight[] => [
   ...featuredBusinesses.map((item) => ({
     key: `comercio-${item.id}`,
@@ -320,12 +328,23 @@ const buildWelcomeItems = (
       contact: item.contacto || null,
       usesWhatsapp: item.usa_whatsapp ?? true,
     }))),
+  ...instituciones.map((item) => ({
+    key: `institucion-${item.id}`,
+    kind: "institucion" as const,
+    title: item.nombre,
+    description: item.descripcion || "Institución de referencia en Hola Sierras.",
+    image: item.foto || null,
+    subtitle: item.localidad || item.direccion || null,
+    contact: item.telefono || null,
+    usesWhatsapp: item.usa_whatsapp ?? true,
+  })),
 ]
 
 const getInitialWelcomeHighlight = (
   featuredBusinesses: Comercio[],
   allServicios: Servicio[],
-  allCursos: Curso[]
+  allCursos: Curso[],
+  instituciones: Institucion[]
 ): WelcomeHighlight | null => {
   if (typeof window === "undefined") return null
 
@@ -334,7 +353,12 @@ const getInitialWelcomeHighlight = (
 
   if (alreadyShownThisSession) return null
 
-  const welcomeItems = buildWelcomeItems(featuredBusinesses, allServicios, allCursos)
+  const welcomeItems = buildWelcomeItems(
+    featuredBusinesses,
+    allServicios,
+    allCursos,
+    instituciones
+  )
   if (welcomeItems.length === 0) return null
 
   const lastShownKey = window.localStorage.getItem(WELCOME_LAST_KEY)
@@ -561,13 +585,19 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         getInitialWelcomeHighlight(
           initialData.featuredBusinesses,
           initialData.allServicios,
-          initialData.allCursos
+          initialData.allCursos,
+          initialData.instituciones
         )
       )
     }, 20000)
 
     return () => window.clearTimeout(timeoutId)
-  }, [initialData.allCursos, initialData.allServicios, initialData.featuredBusinesses])
+  }, [
+    initialData.allCursos,
+    initialData.allServicios,
+    initialData.featuredBusinesses,
+    initialData.instituciones,
+  ])
 
   const getWeatherIcon = (weatherCode: number) => {
     if ([61, 63, 65, 80, 81, 82].includes(weatherCode)) return CloudRain
@@ -692,6 +722,12 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         (item) => `comercio-${item.id}` === welcomeHighlight.key
       )
       if (comercio) {
+        if (comercio.premium_activo) {
+          closeWelcomeHighlight()
+          router.push(`/comercios/${comercio.id}`)
+          return
+        }
+
         setSelectedComercio(comercio)
       }
     }
@@ -703,6 +739,12 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         (item) => `servicio-${item.id}` === welcomeHighlight.key
       )
       if (servicio) {
+        if (servicio.premium_activo) {
+          closeWelcomeHighlight()
+          router.push(`/servicios/${servicio.id}`)
+          return
+        }
+
         setSelectedServicio(servicio)
       }
     }
@@ -713,6 +755,22 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         allCursos.find((item) => `curso-${item.id}` === welcomeHighlight.key)
       if (curso) {
         setSelectedCurso(curso)
+      }
+    }
+
+    if (welcomeHighlight.kind === "institucion") {
+      const institucion = instituciones.find(
+        (item) => `institucion-${item.id}` === welcomeHighlight.key
+      )
+
+      if (institucion) {
+        if (institucion.premium_activo) {
+          closeWelcomeHighlight()
+          router.push(`/instituciones/${institucion.id}`)
+          return
+        }
+
+        setSelectedInstitucion(institucion)
       }
     }
 
@@ -818,11 +876,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                     type="button"
                     onClick={() =>
                       handleViewMoreClick(
-                        welcomeHighlight.kind === "comercio"
-                          ? "comercios"
-                          : welcomeHighlight.kind === "servicio"
-                            ? "servicios"
-                            : "cursos",
+                        getWelcomeSection(welcomeHighlight.kind),
                         welcomeHighlight.key.split("-").slice(1).join("-"),
                         welcomeHighlight.title,
                         openWelcomeDetail
@@ -841,13 +895,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                         welcomeHighlight.usesWhatsapp
                       )}
                       mode={welcomeHighlight.usesWhatsapp === false ? "phone" : "whatsapp"}
-                      section={
-                        welcomeHighlight.kind === "comercio"
-                          ? "comercios"
-                          : welcomeHighlight.kind === "servicio"
-                            ? "servicios"
-                            : "cursos"
-                      }
+                      section={getWelcomeSection(welcomeHighlight.kind)}
                       itemId={welcomeHighlight.key.split("-").slice(1).join("-")}
                       itemTitle={welcomeHighlight.title}
                       target="_blank"
@@ -989,6 +1037,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         title={selectedComercio?.nombre || ""}
         imageSrc={selectedComercio ? selectedComercio.imagen_url || selectedComercio.imagen || null : null}
         imageAlt={selectedComercio?.nombre || "Comercio"}
+        imagePlacement={selectedComercio?.premium_activo ? "side" : "top"}
         badge={selectedComercio?.premium_activo ? "Premium" : null}
         description={selectedComercio?.descripcion || null}
         extraContent={
@@ -1100,6 +1149,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         title={selectedServicio?.nombre || ""}
         imageSrc={selectedServicio?.imagen || null}
         imageAlt={selectedServicio?.nombre || "Servicio"}
+        imagePlacement={selectedServicio?.premium_activo ? "side" : "top"}
         badge={selectedServicio?.premium_activo ? "Premium" : selectedServicio?.categoria || null}
         description={selectedServicio?.descripcion || null}
         extraContent={
@@ -1753,7 +1803,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 justify-items-center gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 justify-items-center gap-4 xl:grid-cols-4">
             {visibleFeaturedBusinesses.map((business) => {
               const imageSrc = business.imagen_url || business.imagen
 
@@ -1799,7 +1849,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                       <OptimizedImage
                         src={imageSrc}
                         alt={business.nombre}
-                        sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1280px) 50vw, 25vw"
                         className="object-contain p-3"
                       />
                     </div>
@@ -1880,7 +1930,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
             </div>
           ) : (
             <>
-            <div className="grid grid-cols-1 justify-items-center gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-2 justify-items-center gap-4 xl:grid-cols-4">
               {visibleServicios.map((servicio) => (
                 <div
                         key={servicio.id}
@@ -1923,7 +1973,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                             <OptimizedImage
                               src={servicio.imagen}
                               alt={servicio.nombre}
-                              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                              sizes="(max-width: 768px) 50vw, (max-width: 1280px) 50vw, 25vw"
                               className="object-contain p-3"
                             />
                           </div>
@@ -2050,7 +2100,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
             {visibleEventos.map((event) => (
               <div
                 key={event.id}
@@ -2074,30 +2124,30 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                     )
                   )
                 }
-                className="cursor-pointer overflow-hidden rounded-[28px] border border-emerald-800/18 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45),0_0_0_1px_rgba(72,110,82,0.05)] transition hover:-translate-y-1.5 hover:border-emerald-800/24 hover:shadow-[0_28px_60px_-30px_rgba(74,110,82,0.18),0_0_0_1px_rgba(72,110,82,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/35"
+                className="cursor-pointer overflow-hidden rounded-[20px] border border-emerald-800/18 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45),0_0_0_1px_rgba(72,110,82,0.05)] transition hover:-translate-y-1.5 hover:border-emerald-800/24 hover:shadow-[0_28px_60px_-30px_rgba(74,110,82,0.18),0_0_0_1px_rgba(72,110,82,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/35 md:rounded-[28px]"
               >
                 {event.imagen && (
-                  <div className="relative h-64 w-full bg-slate-50">
+                  <div className="relative h-32 w-full bg-slate-50 sm:h-64">
                     <OptimizedImage
                       src={event.imagen}
                       alt={event.titulo}
-                      sizes="(max-width: 1024px) 100vw, 33vw"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-contain p-3"
                     />
                   </div>
                 )}
 
-                <div className="p-5">
-                  <div className="mb-4 flex items-center gap-2 text-lg text-blue-500">
-                    <CalendarDays className="h-5 w-5" />
+                <div className="p-3 md:p-5">
+                  <div className="mb-2 flex items-center gap-2 text-xs text-blue-500 md:mb-4 md:text-lg">
+                    <CalendarDays className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
                     <span>{formatEventDateRange(event.fecha, event.fecha_fin, event.fecha_solo_mes ?? false)}</span>
                   </div>
 
-                  <div className="mb-3 inline-flex rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+                  <div className="mb-2 inline-flex rounded-full bg-sky-50 px-2 py-1 text-[11px] font-semibold text-sky-700 md:mb-3 md:px-3 md:text-xs">
                     {normalizeEventCategory(event.categoria)}
                   </div>
 
-                  <h3 className="text-[22px] font-semibold text-slate-900">
+                  <h3 className="text-base font-semibold leading-tight text-slate-900 md:text-[22px]">
                     {event.titulo}
                   </h3>
 
@@ -2112,7 +2162,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(clickEvent) => clickEvent.stopPropagation()}
-                    className="mt-2 block text-sm text-sky-700 transition hover:text-sky-800"
+                    className="mt-2 line-clamp-2 block text-xs text-sky-700 transition hover:text-sky-800 md:text-sm"
                   >
                     {event.ubicacion}
                   </a>
@@ -2138,7 +2188,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                         () => setSelectedEvento(event)
                       )
                     }}
-                    className="mt-5 inline-flex items-center gap-2 text-lg font-medium text-blue-500 hover:text-blue-600"
+                    className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-blue-500 hover:text-blue-600 md:mt-5 md:text-lg"
                   >
                         Ver más
                     <ArrowRight className="h-4 w-4" />
@@ -2175,7 +2225,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
               Todavía no hay cursos o clases cargados.
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
               {visibleCursos.map((curso) => (
                 <div
                   key={curso.id}
@@ -2267,7 +2317,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                 Todavía no hay instituciones cargadas.
             </div>
           ) : (
-            <div className="grid grid-cols-1 justify-items-center gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-2 justify-items-center gap-4 xl:grid-cols-4">
               {visibleInstituciones.map((institucion) => (
                 <div
                   key={institucion.id}

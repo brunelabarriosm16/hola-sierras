@@ -318,7 +318,7 @@ export function InstitucionesPageClient({
             </p>
           </div>
         ) : (
-          <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div className="mt-8 grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3 xl:grid-cols-5">
             {institucionesFiltradas.map((institucion) => (
               <div
                 key={institucion.id}
@@ -345,18 +345,18 @@ export function InstitucionesPageClient({
                 className={`cursor-pointer overflow-hidden rounded-xl border shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${institucion.premium_activo ? "border-violet-200 bg-violet-50/20" : "border-gray-200"}`}
               >
                 {institucion.foto && (
-                  <div className="relative h-56 w-full bg-slate-50">
+                  <div className="relative h-32 w-full bg-slate-50 sm:h-56">
                     <OptimizedImage
                       src={institucion.foto}
                       alt={institucion.nombre}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 20vw"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw"
                       className="object-contain p-3"
                     />
                   </div>
                 )}
 
-                <div className="p-5">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                <div className="p-3 md:p-5">
+                  <h2 className="text-base font-semibold text-gray-900 md:text-xl">
                     {institucion.nombre}
                   </h2>
 
