@@ -1845,20 +1845,27 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                   className={`w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[24px] border bg-white/90 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.5)] transition hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${business.premium_activo ? "border-violet-200 hover:shadow-[0_28px_60px_-30px_rgba(139,92,246,0.35)]" : "border-white/80 hover:shadow-[0_28px_60px_-30px_rgba(59,130,246,0.35)]"}`}
                 >
                   {imageSrc && (
-                    <div className="relative h-32 w-full bg-slate-50 sm:h-40">
+                    <div className="relative h-32 w-full overflow-hidden bg-slate-100 sm:h-40">
                       <OptimizedImage
                         src={imageSrc}
                         alt={business.nombre}
                         sizes="(max-width: 640px) 50vw, (max-width: 1280px) 50vw, 25vw"
-                        className="object-contain p-3"
+                        className="object-cover"
                       />
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/82 via-slate-950/48 to-transparent px-3 pb-3 pt-9">
+                        <span className="block text-balance text-sm font-semibold leading-tight text-white drop-shadow-sm sm:text-base">
+                          {business.nombre}
+                        </span>
+                      </div>
                     </div>
                   )}
 
                   <div className="p-4">
-                    <h3 className="text-base font-semibold leading-tight text-slate-900 sm:text-lg">
-                      {business.nombre}
-                    </h3>
+                    {!imageSrc ? (
+                      <h3 className="text-base font-semibold leading-tight text-slate-900 sm:text-lg">
+                        {business.nombre}
+                      </h3>
+                    ) : null}
                     {business.direccion && (
                       <a
                         href={
@@ -1969,13 +1976,18 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                         className={`w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[24px] border bg-white/90 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${servicio.premium_activo ? "border-violet-200 hover:shadow-[0_28px_60px_-30px_rgba(139,92,246,0.35)]" : "border-white/80 hover:shadow-[0_28px_60px_-30px_rgba(245,158,11,0.35)]"}`}
                       >
                         {servicio.imagen && (
-                          <div className="relative h-32 w-full bg-slate-50 sm:h-40">
+                          <div className="relative h-32 w-full overflow-hidden bg-slate-100 sm:h-40">
                             <OptimizedImage
                               src={servicio.imagen}
                               alt={servicio.nombre}
                               sizes="(max-width: 768px) 50vw, (max-width: 1280px) 50vw, 25vw"
-                              className="object-contain p-3"
+                              className="object-cover"
                             />
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/82 via-slate-950/48 to-transparent px-3 pb-3 pt-9">
+                              <span className="block text-balance text-sm font-semibold leading-tight text-white drop-shadow-sm sm:text-base">
+                                {servicio.nombre}
+                              </span>
+                            </div>
                           </div>
                         )}
 
@@ -1986,9 +1998,11 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                             </div>
                           )}
 
-                              <h3 className="text-base font-semibold leading-tight text-slate-900 sm:text-lg">
-                                {servicio.nombre}
-                              </h3>
+                              {!servicio.imagen ? (
+                                <h3 className="text-base font-semibold leading-tight text-slate-900 sm:text-lg">
+                                  {servicio.nombre}
+                                </h3>
+                              ) : null}
 
                               <div className="mt-3 space-y-2 text-xs text-slate-600 sm:text-sm">
                             {servicio.responsable && (
@@ -2249,10 +2263,10 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                       )
                     )
                   }
-                  className="cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-30px_rgba(71,85,105,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                  className="cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1.5 hover:shadow-[0_28px_60px_-30px_rgba(71,85,105,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-800/35"
                 >
-                  <div className="bg-emerald-600 p-5">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-emerald-600 shadow-sm">
+                  <div className="bg-emerald-800 p-5">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-emerald-800 shadow-sm">
                       <GraduationCap className="h-7 w-7" />
                     </div>
                   </div>
@@ -2279,7 +2293,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                           () => setSelectedCurso(curso)
                         )
                       }}
-                      className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-600 transition hover:text-emerald-700 sm:mt-5 sm:text-sm"
+                      className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-800 transition hover:text-emerald-950 sm:mt-5 sm:text-sm"
                     >
                       Ver más
                       <ArrowRight className="h-4 w-4" />
@@ -2329,10 +2343,10 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                       handleOpenInstitucion(institucion)
                     )
                   }
-                  className="w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:shadow-[0_28px_60px_-30px_rgba(71,85,105,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  className="w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:shadow-[0_28px_60px_-30px_rgba(71,85,105,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-800/35"
                 >
-                  <div className="bg-sky-600 p-5">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-sky-600 shadow-sm">
+                  <div className="bg-sky-800 p-5">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-sky-800 shadow-sm">
                       <Building2 className="h-7 w-7" />
                     </div>
                   </div>
