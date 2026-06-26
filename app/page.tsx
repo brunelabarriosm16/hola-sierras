@@ -51,7 +51,7 @@ const getHomeSupabaseData = unstable_cache(
         .order("fecha", { ascending: true }),
       supabaseServer
         .from("cursos")
-        .select("id, nombre, descripcion, responsable, contacto, localidad, edades, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
+        .select("id, nombre, descripcion, responsable, contacto, localidad, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
         .or("estado.is.null,estado.eq.activo")
         .order("id", { ascending: false })
         .limit(24),
@@ -77,7 +77,7 @@ const getHomeSupabaseData = unstable_cache(
     return {
       featuredNotices: featuredNotices || [],
       featuredBusinesses: featuredBusinesses || [],
-      eventos: (eventosData || []).slice(0, 6),
+      eventos: (eventosData || []).slice(0, 8),
       cursos: (cursos || []).slice(0, 8),
       servicios: servicios || [],
       instituciones: instituciones || [],
