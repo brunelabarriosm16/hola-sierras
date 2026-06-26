@@ -450,22 +450,26 @@ function LogoGridCard({
   onClick: () => void
   onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 }) {
+  const imageFrameClass = showName
+    ? "relative flex h-full max-h-32 w-full items-center justify-center overflow-hidden rounded-[14px] bg-slate-50"
+    : "relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden rounded-[14px] bg-slate-50"
+
   return (
     <div
       role="button"
       tabIndex={0}
       onClick={onClick}
       onKeyDown={onKeyDown}
-      className="group flex aspect-square w-full cursor-pointer flex-col items-center justify-center rounded-[18px] border border-white/80 bg-white/92 p-3 text-center shadow-[0_14px_34px_-26px_rgba(15,23,42,0.5)] transition hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_22px_46px_-28px_rgba(15,23,42,0.4)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 sm:p-4"
+      className="group flex aspect-square w-full cursor-pointer flex-col items-center justify-center rounded-[18px] border border-white/80 bg-white/92 p-2 text-center shadow-[0_14px_34px_-26px_rgba(15,23,42,0.5)] transition hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_22px_46px_-28px_rgba(15,23,42,0.4)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 sm:p-3"
       aria-label={`Ver ficha de ${name}`}
     >
-      <div className="relative flex h-full max-h-24 w-full items-center justify-center overflow-hidden rounded-[14px] bg-slate-50 sm:max-h-28">
+      <div className={imageFrameClass}>
         {image ? (
           <OptimizedImage
             src={image}
             alt={name}
             sizes="(max-width: 768px) 33vw, 20vw"
-            className="object-contain p-2 transition duration-200 group-hover:scale-[1.03]"
+            className="object-contain p-1 transition duration-200 group-hover:scale-[1.03] sm:p-2"
           />
         ) : (
           fallback
