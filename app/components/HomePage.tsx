@@ -14,14 +14,11 @@ import {
 import { useRouter } from "next/navigation"
 import { ContactActionLink } from "./ContactActionLink"
 import { ExternalLinksButtons } from "./ExternalLinksButtons"
-import { EventLikeButton } from "./EventLikeButton"
 import { OptimizedImage } from "./OptimizedImage"
-import { PrimaryExternalLinkButton } from "./PrimaryExternalLinkButton"
 import { PublicHeader } from "./PublicHeader"
 import { ShareButton } from "./ShareButton"
 import { SorteoParticipationForm } from "./SorteoParticipationForm"
 import { formatEventDateRange } from "../lib/eventDates"
-import { fetchEventLikes, recordEventLike } from "../lib/eventLikes"
 import { parseEventDescription } from "../lib/eventSubmissionMeta"
 import { getGoogleMapsSearchUrl } from "../lib/maps"
 import { recordContentVisit, recordSiteVisit } from "../lib/contentVisits"
@@ -112,6 +109,7 @@ type Curso = {
   responsable: string
   contacto: string
   localidad?: string | null
+  edades?: string[] | null
   web_url?: string | null
   instagram_url?: string | null
   facebook_url?: string | null
@@ -177,6 +175,16 @@ type Institucion = {
   usa_whatsapp?: boolean | null
 }
 
+type HighlightProposalType = "institucion" | "comercio" | "servicio" | "curso" | "turismo"
+
+type FeaturedNotice = {
+  id: number
+  imagen: string
+  tipo_propuesta: HighlightProposalType
+  propuesta_id: number
+  espera_segundos: number
+}
+
 type SobreVarelaConfig = {
   titulo: string
   texto_1: string
@@ -201,6 +209,7 @@ export type WeatherData = {
 }
 
 export type HomePageData = {
+  featuredNotices: FeaturedNotice[]
   featuredBusinesses: Comercio[]
   eventos: Evento[]
   cursos: Curso[]
@@ -292,81 +301,28 @@ async function fetchWeatherItems() {
 
 type WelcomeHighlight = {
   key: string
-  kind: "comercio" | "servicio" | "curso" | "institucion"
-  title: string
-  description: string
-  image: string | null
-  subtitle?: string | null
-  contact?: string | null
-  usesWhatsapp?: boolean
+  id: number
+  kind: HighlightProposalType
+  proposalId: number
+  image: string
+  waitSeconds: number
 }
 
 const getWelcomeSection = (kind: WelcomeHighlight["kind"]): ViewMoreSection => {
   if (kind === "comercio") return "comercios"
-  if (kind === "servicio") return "servicios"
+  if (kind === "servicio" || kind === "turismo") return "servicios"
   if (kind === "institucion") return "instituciones"
   return "cursos"
 }
 
-const buildWelcomeItems = (
-  featuredBusinesses: Comercio[],
-  allServicios: Servicio[],
-  allCursos: Curso[],
-  instituciones: Institucion[]
-): WelcomeHighlight[] => [
-  ...featuredBusinesses.map((item) => ({
-    key: `comercio-${item.id}`,
-    kind: "comercio" as const,
-    title: item.nombre,
-    description: item.descripcion || "Conoce este comercio destacado de la ciudad.",
-    image: item.imagen_url || item.imagen || null,
-    subtitle: item.localidad || item.direccion || null,
-    contact: item.telefono || null,
-    usesWhatsapp: item.usa_whatsapp ?? true,
-  })),
-  ...(allServicios
-    .filter((item) => isFeaturedListing(item))
-    .map((item) => ({
-      key: `servicio-${item.id}`,
-      kind: "servicio" as const,
-      title: item.nombre,
-      description:
-        item.descripcion || "Servicio destacado para descubrir en Hola Sierras.",
-      image: item.imagen || null,
-      subtitle: item.categoria || null,
-      contact: item.contacto || null,
-      usesWhatsapp: item.usa_whatsapp ?? true,
-    }))),
-  ...(allCursos
-    .filter((item) => item.destacado)
-    .map((item) => ({
-      key: `curso-${item.id}`,
-      kind: "curso" as const,
-      title: item.nombre,
-      description: item.descripcion || "Curso o clase destacada para sumarte en la ciudad.",
-      image: item.imagen || null,
-      subtitle: item.responsable || null,
-      contact: item.contacto || null,
-      usesWhatsapp: item.usa_whatsapp ?? true,
-    }))),
-  ...instituciones.map((item) => ({
-    key: `institucion-${item.id}`,
-    kind: "institucion" as const,
-    title: item.nombre,
-    description: item.descripcion || "Institución de referencia en Hola Sierras.",
-    image: item.foto || null,
-    subtitle: item.localidad || item.direccion || null,
-    contact: item.telefono || null,
-    usesWhatsapp: item.usa_whatsapp ?? true,
-  })),
-]
+const getNoticeDetailPath = (notice: WelcomeHighlight) => {
+  if (notice.kind === "institucion") return `/instituciones/${notice.proposalId}`
+  if (notice.kind === "comercio") return `/comercios/${notice.proposalId}`
+  if (notice.kind === "curso") return `/cursos/${notice.proposalId}`
+  return `/servicios/${notice.proposalId}`
+}
 
-const getInitialWelcomeHighlight = (
-  featuredBusinesses: Comercio[],
-  allServicios: Servicio[],
-  allCursos: Curso[],
-  instituciones: Institucion[]
-): WelcomeHighlight | null => {
+const getInitialWelcomeHighlight = (featuredNotices: FeaturedNotice[]): WelcomeHighlight | null => {
   if (typeof window === "undefined") return null
 
   const alreadyShownThisSession =
@@ -374,20 +330,38 @@ const getInitialWelcomeHighlight = (
 
   if (alreadyShownThisSession) return null
 
-  const welcomeItems = buildWelcomeItems(
-    featuredBusinesses,
-    allServicios,
-    allCursos,
-    instituciones
+  const seenKeys = new Set(
+    (window.sessionStorage.getItem(WELCOME_SEEN_KEY) || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean)
   )
+  const welcomeItems = featuredNotices
+    .filter((item) => item.imagen)
+    .map((item) => ({
+      key: `aviso-${item.id}`,
+      id: item.id,
+      kind: item.tipo_propuesta,
+      proposalId: item.propuesta_id,
+      image: item.imagen,
+      waitSeconds: item.espera_segundos ?? 20,
+    }))
+
   if (welcomeItems.length === 0) return null
 
+  const unseenItems = welcomeItems.filter((item) => !seenKeys.has(item.key))
+  const availableItems = unseenItems.length > 0 ? unseenItems : welcomeItems
   const lastShownKey = window.localStorage.getItem(WELCOME_LAST_KEY)
-  const lastIndex = welcomeItems.findIndex((item) => item.key === lastShownKey)
-  const nextIndex = lastIndex >= 0 ? (lastIndex + 1) % welcomeItems.length : 0
-  const nextItem = welcomeItems[nextIndex]
+  const lastIndex = availableItems.findIndex((item) => item.key === lastShownKey)
+  const nextIndex =
+    lastIndex >= 0 ? (lastIndex + 1) % availableItems.length : Math.floor(Math.random() * availableItems.length)
+  const nextItem = availableItems[nextIndex]
 
   window.localStorage.setItem(WELCOME_LAST_KEY, nextItem.key)
+  window.sessionStorage.setItem(
+    WELCOME_SEEN_KEY,
+    [...seenKeys, nextItem.key].join(",")
+  )
   return nextItem
 }
 
@@ -405,6 +379,7 @@ const defaultSobreVarela: SobreVarelaConfig = {
 const WELCOME_PROMOTION_ENABLED = true
 const WELCOME_SESSION_KEY = "guia-varela-welcome-shown-v2"
 const WELCOME_LAST_KEY = "guia-varela-last-highlight"
+const WELCOME_SEEN_KEY = "guia-varela-seen-highlights-v1"
 const initialContactLeadForm: ContactLeadForm = {
   nombre: "",
   telefono: "",
@@ -464,12 +439,14 @@ function LogoGridCard({
   image,
   name,
   fallback,
+  showName = true,
   onClick,
   onKeyDown,
 }: {
   image: string | null
   name: string
   fallback: ReactNode
+  showName?: boolean
   onClick: () => void
   onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 }) {
@@ -494,9 +471,11 @@ function LogoGridCard({
           fallback
         )}
       </div>
-      <span className="mt-2 line-clamp-2 text-[11px] font-semibold leading-tight text-slate-700 sm:text-sm">
-        {name}
-      </span>
+      {showName ? (
+        <span className="mt-2 line-clamp-2 text-[11px] font-semibold leading-tight text-slate-700 sm:text-sm">
+          {name}
+        </span>
+      ) : null}
     </div>
   )
 }
@@ -549,12 +528,11 @@ function isTourismProposal(servicio: Servicio) {
 
 export function HomePage({ initialData }: { initialData: HomePageData }) {
   const router = useRouter()
+  const featuredNotices = initialData.featuredNotices
   const featuredBusinesses = initialData.featuredBusinesses
   const eventos = initialData.eventos
   const cursos = initialData.cursos
   const servicios = initialData.servicios
-  const allCursos = initialData.allCursos
-  const allServicios = initialData.allServicios
   const instituciones = initialData.instituciones
   const sobreVarela = initialData.sobreVarela || defaultSobreVarela
   const [selectedComercio, setSelectedComercio] = useState<Comercio | null>(null)
@@ -562,9 +540,6 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   const [selectedEvento, setSelectedEvento] = useState<Evento | null>(null)
   const [selectedCurso, setSelectedCurso] = useState<Curso | null>(null)
   const [selectedInstitucion, setSelectedInstitucion] = useState<Institucion | null>(null)
-  const [eventLikeCounts, setEventLikeCounts] = useState<Record<string, number>>({})
-  const [likedEvents, setLikedEvents] = useState<Record<string, boolean>>({})
-  const [likingEventId, setLikingEventId] = useState<string | null>(null)
   const [contactLeadForm, setContactLeadForm] = useState<ContactLeadForm>(
     initialContactLeadForm
   )
@@ -577,7 +552,6 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   const [isContactLeadOpen, setIsContactLeadOpen] = useState(false)
   const [welcomeHighlight, setWelcomeHighlight] = useState<WelcomeHighlight | null>(null)
   const [zoomedImage, setZoomedImage] = useState<{ src: string; alt: string } | null>(null)
-  const [shouldLoadEventLikes, setShouldLoadEventLikes] = useState(false)
   const eventsSectionRef = useRef<HTMLElement | null>(null)
 
   const orderedServicios = useMemo(
@@ -640,48 +614,12 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   )
   const visibleEventos = useMemo(() => eventos.slice(0, 8), [eventos])
   const visibleCursos = useMemo(() => cursos.slice(0, 8), [cursos])
-  const visibleInstituciones = useMemo(() => instituciones.slice(0, 15), [instituciones])
+  const visibleInstituciones = useMemo(() => instituciones.slice(0, 10), [instituciones])
 
   const [weatherItems, setWeatherItems] = useState<WeatherData[]>(initialData.weather)
   const [weatherStatus, setWeatherStatus] = useState<"loading" | "ready" | "unavailable">(
     initialData.weather.length > 0 ? "ready" : "loading"
   )
-
-  useEffect(() => {
-    if (shouldLoadEventLikes) return
-
-    const section = eventsSectionRef.current
-    if (!section) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setShouldLoadEventLikes(true)
-          observer.disconnect()
-        }
-      },
-      {
-        rootMargin: "280px 0px",
-      }
-    )
-
-    observer.observe(section)
-
-    return () => observer.disconnect()
-  }, [shouldLoadEventLikes])
-
-  useEffect(() => {
-    if (!shouldLoadEventLikes || eventos.length === 0) return
-
-    const loadEventLikes = async () => {
-      const eventIds = eventos.map((evento) => String(evento.id))
-      const { countMap, likedMap } = await fetchEventLikes(eventIds)
-      setEventLikeCounts(countMap)
-      setLikedEvents(likedMap)
-    }
-
-    void loadEventLikes()
-  }, [eventos, shouldLoadEventLikes])
 
   useEffect(() => {
     let isMounted = true
@@ -715,24 +653,15 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   useEffect(() => {
     if (!WELCOME_PROMOTION_ENABLED) return
 
+    const nextHighlight = getInitialWelcomeHighlight(featuredNotices)
+    if (!nextHighlight) return
+
     const timeoutId = window.setTimeout(() => {
-      setWelcomeHighlight(
-        getInitialWelcomeHighlight(
-          initialData.featuredBusinesses,
-          initialData.allServicios,
-          initialData.allCursos,
-          initialData.instituciones
-        )
-      )
-    }, 20000)
+      setWelcomeHighlight(nextHighlight)
+    }, Math.max(0, nextHighlight.waitSeconds) * 1000)
 
     return () => window.clearTimeout(timeoutId)
-  }, [
-    initialData.allCursos,
-    initialData.allServicios,
-    initialData.featuredBusinesses,
-    initialData.instituciones,
-  ])
+  }, [featuredNotices])
 
   const getWeatherIcon = (weatherCode: number) => {
     if ([61, 63, 65, 80, 81, 82].includes(weatherCode)) return CloudRain
@@ -796,29 +725,6 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
     }
   }
 
-  const handleEventLike = async (eventId: string, eventTitle: string) => {
-    if (likedEvents[eventId] || likingEventId === eventId) return
-
-    setLikingEventId(eventId)
-    const result = await recordEventLike(eventId, eventTitle)
-
-    if (result.status === "liked") {
-      setEventLikeCounts((prev) => ({
-        ...prev,
-        [eventId]: (prev[eventId] || 0) + 1,
-      }))
-    }
-
-    if (result.status === "liked" || result.status === "exists") {
-      setLikedEvents((prev) => ({
-        ...prev,
-        [eventId]: true,
-      }))
-    }
-
-    setLikingEventId(null)
-  }
-
   const closeWelcomeHighlight = () => {
     window.sessionStorage.setItem(WELCOME_SESSION_KEY, "true")
     setWelcomeHighlight(null)
@@ -852,64 +758,13 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   const openWelcomeDetail = () => {
     if (!welcomeHighlight) return
 
-    if (welcomeHighlight.kind === "comercio") {
-      const comercio = featuredBusinesses.find(
-        (item) => `comercio-${item.id}` === welcomeHighlight.key
-      )
-      if (comercio) {
-        if (comercio.premium_activo) {
-          closeWelcomeHighlight()
-          router.push(`/comercios/${comercio.id}`)
-          return
-        }
-
-        setSelectedComercio(comercio)
-      }
-    }
-
-    if (welcomeHighlight.kind === "servicio") {
-      const servicio = servicios.find(
-        (item) => `servicio-${item.id}` === welcomeHighlight.key
-      ) || allServicios.find(
-        (item) => `servicio-${item.id}` === welcomeHighlight.key
-      )
-      if (servicio) {
-        if (servicio.premium_activo) {
-          closeWelcomeHighlight()
-          router.push(`/servicios/${servicio.id}`)
-          return
-        }
-
-        setSelectedServicio(servicio)
-      }
-    }
-
-    if (welcomeHighlight.kind === "curso") {
-      const curso =
-        cursos.find((item) => `curso-${item.id}` === welcomeHighlight.key) ||
-        allCursos.find((item) => `curso-${item.id}` === welcomeHighlight.key)
-      if (curso) {
-        setSelectedCurso(curso)
-      }
-    }
-
-    if (welcomeHighlight.kind === "institucion") {
-      const institucion = instituciones.find(
-        (item) => `institucion-${item.id}` === welcomeHighlight.key
-      )
-
-      if (institucion) {
-        if (institucion.premium_activo) {
-          closeWelcomeHighlight()
-          router.push(`/instituciones/${institucion.id}`)
-          return
-        }
-
-        setSelectedInstitucion(institucion)
-      }
-    }
-
+    void recordViewMore(
+      getWelcomeSection(welcomeHighlight.kind),
+      String(welcomeHighlight.proposalId),
+      "Aviso destacado"
+    )
     closeWelcomeHighlight()
+    router.push(getNoticeDetailPath(welcomeHighlight))
   }
 
   const contactLeadIntro =
@@ -947,111 +802,30 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
       ) : null}
       {WELCOME_PROMOTION_ENABLED && welcomeHighlight && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4">
-          <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[28px] bg-white shadow-2xl">
+          <div className="relative w-full max-w-3xl overflow-hidden rounded-[24px] bg-white shadow-2xl">
             <button
               type="button"
               onClick={closeWelcomeHighlight}
-              className="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-2 text-slate-700 shadow-sm transition hover:bg-white"
-              aria-label="Cerrar bienvenida"
+              className="absolute right-3 top-3 z-10 rounded-full bg-white/95 p-2 text-slate-700 shadow-sm transition hover:bg-white"
+              aria-label="Cerrar destacado"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr]">
-                <div className="bg-[linear-gradient(180deg,#eef4ef_0%,#d9e6dc_100%)]">
-                  {welcomeHighlight.image ? (
-                    <div className="flex min-h-[280px] w-full items-center justify-center bg-slate-100 p-6 md:min-h-[360px]">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setZoomedImage({
-                            src: welcomeHighlight.image || "",
-                            alt: welcomeHighlight.title,
-                          })
-                        }
-                        className="relative aspect-[4/5] h-[280px] w-full max-w-[420px] overflow-hidden rounded-[24px] border border-white/80 bg-white shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] transition hover:scale-[1.01] md:h-[360px]"
-                        aria-label="Ver imagen mas grande"
-                      >
-                        <OptimizedImage
-                          src={welcomeHighlight.image}
-                          alt={welcomeHighlight.title}
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                          className="object-contain p-3"
-                        />
-                      </button>
-                    </div>
-                  ) : (
-                  <div className="flex min-h-[280px] items-center justify-center text-slate-400">
-                    Sin imagen
-                  </div>
-                )}
-              </div>
-
-              <div className="p-6 md:p-8">
-                <div className="mb-4 inline-flex rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-800">
-                  Descubrí en Sierras
-                </div>
-
-                <h2 className="text-3xl font-semibold leading-tight text-slate-900">
-                  {welcomeHighlight.title}
-                </h2>
-
-                {welcomeHighlight.subtitle && (
-                  <p className="mt-3 text-base font-medium text-slate-500">
-                    {welcomeHighlight.subtitle}
-                  </p>
-                )}
-
-                <p className="mt-5 text-lg leading-8 text-slate-600">
-                  {welcomeHighlight.description}
-                </p>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleViewMoreClick(
-                        getWelcomeSection(welcomeHighlight.kind),
-                        welcomeHighlight.key.split("-").slice(1).join("-"),
-                        welcomeHighlight.title,
-                        openWelcomeDetail
-                      )
-                    }
-                    className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-500"
-                  >
-                    Ver más
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-
-                  {welcomeHighlight.contact && (
-                    <ContactActionLink
-                      href={getContactHref(
-                        welcomeHighlight.contact,
-                        welcomeHighlight.usesWhatsapp
-                      )}
-                      mode={welcomeHighlight.usesWhatsapp === false ? "phone" : "whatsapp"}
-                      section={getWelcomeSection(welcomeHighlight.kind)}
-                      itemId={welcomeHighlight.key.split("-").slice(1).join("-")}
-                      itemTitle={welcomeHighlight.title}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
-                    >
-                      <Phone className="h-4 w-4" />
-                      {getContactLabel(welcomeHighlight.usesWhatsapp)}
-                    </ContactActionLink>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={closeWelcomeHighlight}
-                    className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    Cerrar
-                  </button>
-                </div>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={openWelcomeDetail}
+              className="relative block h-[min(82vh,620px)] w-full bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 sm:h-[min(84vh,680px)]"
+              aria-label="Abrir detalle del destacado"
+            >
+              <OptimizedImage
+                src={welcomeHighlight.image}
+                alt="Aviso destacado"
+                sizes="(max-width: 768px) 96vw, 760px"
+                priority
+                className="object-contain"
+              />
+            </button>
           </div>
         </div>
       )}
@@ -1485,18 +1259,6 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                 section="eventos"
                 itemId={String(selectedEvento.id)}
                 className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-5 py-3 font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
-              />
-            ) : null}
-
-            {selectedEvento ? (
-              <EventLikeButton
-                count={eventLikeCounts[String(selectedEvento.id)] || 0}
-                liked={Boolean(likedEvents[String(selectedEvento.id)])}
-                onClick={() =>
-                  void handleEventLike(String(selectedEvento.id), selectedEvento.titulo)
-                }
-                disabled={likingEventId === String(selectedEvento.id)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600 transition hover:bg-emerald-100 disabled:cursor-default disabled:opacity-70"
               />
             ) : null}
 
@@ -1950,6 +1712,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                     key={listing.key}
                     image={listing.image}
                     name={listing.nombre}
+                    showName={false}
                     fallback={
                       listing.type === "comercio" ? (
                         <Building2 className="h-8 w-8 text-slate-400 sm:h-10 sm:w-10" />
@@ -2155,7 +1918,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
             {visibleEventos.map((event) => (
               <div
                 key={event.id}
@@ -2222,32 +1985,6 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                     {event.ubicacion}
                   </a>
 
-                  <div className="mt-4" onClick={(eventLikeWrapper) => eventLikeWrapper.stopPropagation()}>
-                    <EventLikeButton
-                      count={eventLikeCounts[String(event.id)] || 0}
-                      liked={Boolean(likedEvents[String(event.id)])}
-                      onClick={() => void handleEventLike(String(event.id), event.titulo)}
-                      disabled={likingEventId === String(event.id)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600 transition hover:bg-emerald-100 disabled:cursor-default disabled:opacity-70"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={(eventClick) => {
-                      eventClick.stopPropagation()
-                      handleViewMoreClick(
-                        "eventos",
-                        String(event.id),
-                        event.titulo,
-                        () => setSelectedEvento(event)
-                      )
-                    }}
-                    className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-blue-500 hover:text-blue-600 md:mt-5 md:text-lg"
-                  >
-                        Ver más
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
                 </div>
               </div>
             ))}
@@ -2280,7 +2017,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
               Todavía no hay cursos o clases cargados.
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+            <div className="grid grid-flow-col auto-cols-[minmax(16rem,18rem)] gap-4 overflow-x-auto pb-3">
               {visibleCursos.map((curso) => (
                 <div
                   key={curso.id}
@@ -2323,22 +2060,6 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                       <GraduationCap className="h-4 w-4" />
                       <span>{curso.responsable}</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        handleViewMoreClick(
-                          "cursos",
-                          String(curso.id),
-                          curso.nombre,
-                          () => setSelectedCurso(curso)
-                        )
-                      }}
-                      className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-800 transition hover:text-emerald-950 sm:mt-5 sm:text-sm"
-                    >
-                      Ver más
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
                   </div>
                 </div>
               ))}
@@ -2372,20 +2093,55 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                 Todavía no hay instituciones cargadas.
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 justify-items-center gap-4 xl:grid-cols-4">
               {visibleInstituciones.map((institucion) => (
-                <LogoGridCard
+                <div
                   key={institucion.id}
-                  image={institucion.foto}
-                  name={institucion.nombre}
-                  fallback={<Building2 className="h-8 w-8 text-slate-400 sm:h-10 sm:w-10" />}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleOpenInstitucion(institucion)}
                   onKeyDown={(event) =>
                     handleCardKeyDown(event, () =>
                       handleOpenInstitucion(institucion)
                     )
                   }
-                />
+                  className="w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:shadow-[0_28px_60px_-30px_rgba(71,85,105,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-800/35"
+                >
+                  <div className="bg-sky-800 p-5">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-sky-800 shadow-sm">
+                      <Building2 className="h-7 w-7" />
+                    </div>
+                  </div>
+
+                  <div className="flex min-h-[170px] flex-col">
+                    <div className="flex h-full flex-1 flex-col justify-between p-5">
+                      <div>
+                        <h3 className="text-xl font-semibold leading-tight text-slate-950 sm:text-2xl">
+                          {institucion.nombre}
+                        </h3>
+
+                        {institucion.direccion ? (
+                          <a
+                            href={
+                              getGoogleMapsSearchUrl(
+                                institucion.nombre,
+                                institucion.direccion,
+                                institucion.localidad
+                              ) || "#"
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                            className="mt-3 block line-clamp-2 text-sm text-sky-700 transition hover:text-sky-800"
+                          >
+                            {institucion.direccion}
+                          </a>
+                        ) : null}
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           )}

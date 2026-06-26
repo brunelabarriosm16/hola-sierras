@@ -7,13 +7,11 @@ import {
   BarChart3,
   Eye,
   FileText,
-  Heart,
   MessageCircle,
   MousePointerClick,
   Share2,
 } from "lucide-react"
 import { supabase } from "../../supabase"
-import { buildEventLikeTotal } from "../../lib/eventLikes"
 import {
   buildExternalLinkTotals,
   buildExternalLinkTypeTotals,
@@ -44,10 +42,6 @@ type MetricRow = {
 
 type ExternalLinkMetricRow = MetricRow & {
   link_type: string | null
-}
-
-type EventLikeMetricRow = {
-  created_at: string | null
 }
 
 type VisitRow = {
@@ -88,7 +82,6 @@ type TrendPoint = {
   compartir: number
   verMas: number
   enlaces: number
-  corazones: number
 }
 
 const SECTION_LABELS: Record<string, string> = {
@@ -164,8 +157,7 @@ const buildDailyTrend = (
   shareRows: MetricRow[],
   whatsappRows: MetricRow[],
   viewMoreRows: MetricRow[],
-  externalLinkRows: ExternalLinkMetricRow[],
-  eventLikeRows: EventLikeMetricRow[]
+  externalLinkRows: ExternalLinkMetricRow[]
 ): TrendPoint[] => {
   const last7Days = buildLast7Days()
   const seed = last7Days.reduce<Record<string, TrendPoint>>((acc, day) => {
@@ -175,14 +167,13 @@ const buildDailyTrend = (
       compartir: 0,
       verMas: 0,
       enlaces: 0,
-      corazones: 0,
     }
     return acc
   }, {})
 
   const addRows = (
     rows: Array<{ created_at: string | null }>,
-    key: "whatsapp" | "compartir" | "verMas" | "enlaces" | "corazones"
+    key: "whatsapp" | "compartir" | "verMas" | "enlaces"
   ) => {
     rows.forEach((row) => {
       if (!row.created_at) return
@@ -198,7 +189,6 @@ const buildDailyTrend = (
   addRows(whatsappRows, "whatsapp")
   addRows(viewMoreRows, "verMas")
   addRows(externalLinkRows, "enlaces")
-  addRows(eventLikeRows, "corazones")
 
   return last7Days.map((day) => seed[day])
 }
@@ -323,7 +313,6 @@ export default function AdminMetricasPage() {
   const [externalLinkTypeTotals, setExternalLinkTypeTotals] = useState<ExternalLinkTypeTotals>(
     emptyExternalLinkTypeTotals()
   )
-  const [eventLikeTotal, setEventLikeTotal] = useState(0)
   const [dailyTrend, setDailyTrend] = useState<TrendPoint[]>([])
   const [visitors30Days, setVisitors30Days] = useState(BASELINE_SITE_VISITORS_30D)
   const [pageViews30Days, setPageViews30Days] = useState(BASELINE_SITE_PAGE_VIEWS_30D)
@@ -342,16 +331,13 @@ export default function AdminMetricasPage() {
         { data: whatsappRows },
         { data: viewMoreRows },
         { data: externalLinkRows },
-        { data: eventLikeRows },
         visitRows30,
         shareRows15,
         whatsappRows15,
         viewMoreRows15,
         externalRows15,
-        likesRows15,
         visitRows48,
         contactRows48,
-        likesRows48,
         eventRows48,
         commerceRows48,
         serviceRows48,
@@ -362,7 +348,6 @@ export default function AdminMetricasPage() {
         supabase.from("whatsapp_clicks").select("section, created_at"),
         supabase.from("view_more_clicks").select("section, created_at"),
         supabase.from("external_link_clicks").select("section, link_type, created_at"),
-        supabase.from("event_likes").select("created_at"),
         withFallback<VisitRow>(
           supabase
             .from("content_visits")
@@ -395,10 +380,6 @@ export default function AdminMetricasPage() {
             .gte("created_at", getIsoDaysAgo(15)),
           "los clics externos de 15 dias"
         ),
-        withFallback<InteractionRow>(
-          supabase.from("event_likes").select("created_at").gte("created_at", getIsoDaysAgo(15)),
-          "los likes de 15 dias"
-        ),
         withFallback<BrowserVisitRow>(
           supabase
             .from("content_visits")
@@ -413,10 +394,6 @@ export default function AdminMetricasPage() {
             .select("created_at")
             .gte("created_at", getIsoDaysAgo(2)),
           "los mensajes de 48 horas"
-        ),
-        withFallback<InteractionRow>(
-          supabase.from("event_likes").select("created_at").gte("created_at", getIsoDaysAgo(2)),
-          "los likes de 48 horas"
         ),
         withFallback<InteractionRow>(
           supabase.from("eventos").select("created_at").gte("created_at", getIsoDaysAgo(2)),
@@ -444,21 +421,18 @@ export default function AdminMetricasPage() {
       const safeWhatsappRows = (whatsappRows || []) as MetricRow[]
       const safeViewMoreRows = (viewMoreRows || []) as MetricRow[]
       const safeExternalLinkRows = (externalLinkRows || []) as ExternalLinkMetricRow[]
-      const safeEventLikeRows = (eventLikeRows || []) as EventLikeMetricRow[]
 
       setShareTotals(buildShareTotals(safeShareRows))
       setWhatsappTotals(buildWhatsappTotals(safeWhatsappRows))
       setViewMoreTotals(buildViewMoreTotals(safeViewMoreRows))
       setExternalLinkTotals(buildExternalLinkTotals(safeExternalLinkRows))
       setExternalLinkTypeTotals(buildExternalLinkTypeTotals(safeExternalLinkRows))
-      setEventLikeTotal(buildEventLikeTotal(safeEventLikeRows))
       setDailyTrend(
         buildDailyTrend(
           safeShareRows,
           safeWhatsappRows,
           safeViewMoreRows,
-          safeExternalLinkRows,
-          safeEventLikeRows
+          safeExternalLinkRows
         )
       )
 
@@ -478,8 +452,7 @@ export default function AdminMetricasPage() {
           shareRows15.length +
           whatsappRows15.length +
           viewMoreRows15.length +
-          externalRows15.length +
-          likesRows15.length,
+          externalRows15.length,
         whatsapp15Days: whatsappRows15.length,
       })
       setRecentMessages(
@@ -491,10 +464,6 @@ export default function AdminMetricasPage() {
           {
             label: `${contactRows48.length} ${contactRows48.length === 1 ? "mensaje nuevo" : "mensajes nuevos"}`,
             value: contactRows48.length,
-          },
-          {
-            label: `${likesRows48.length} ${likesRows48.length === 1 ? "nuevo like" : "nuevos likes"}`,
-            value: likesRows48.length,
           },
           {
             label: `${eventRows48.length} ${eventRows48.length === 1 ? "nuevo evento subido" : "nuevos eventos subidos"}`,
@@ -535,7 +504,6 @@ export default function AdminMetricasPage() {
       item.compartir,
       item.verMas,
       item.enlaces,
-      item.corazones,
     ])
   )
   const siteSectionSummary = useMemo(() => {
@@ -556,7 +524,7 @@ export default function AdminMetricasPage() {
             Interacciones del sitio
           </h1>
           <p className="mt-2 text-slate-500">
-            Seguimiento de WhatsApp, compartir, ver mas, sitios/redes y corazones.
+            Seguimiento de WhatsApp, compartir, ver mas y sitios/redes.
           </p>
         </div>
         <Link
@@ -595,7 +563,7 @@ export default function AdminMetricasPage() {
       ) : (
         activeTab === "interacciones" ? (
         <>
-          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               title="WhatsApp"
               value={totalWhatsapp}
@@ -623,13 +591,6 @@ export default function AdminMetricasPage() {
               helper="Botones de web, Instagram y Facebook."
               icon={<MousePointerClick className="h-5 w-5 text-amber-700" />}
               tone="bg-amber-100 text-amber-700"
-            />
-            <MetricCard
-              title="Corazones"
-              value={eventLikeTotal}
-              helper="Likes recibidos por los eventos."
-              icon={<Heart className="h-5 w-5 text-rose-700" />}
-              tone="bg-rose-100 text-rose-700"
             />
           </div>
 
@@ -663,7 +624,6 @@ export default function AdminMetricasPage() {
                       { label: "Compartir", value: item.compartir, color: "bg-violet-500" },
                       { label: "Ver mas", value: item.verMas, color: "bg-sky-500" },
                       { label: "Sitio/redes", value: item.enlaces, color: "bg-amber-500" },
-                      { label: "Corazones", value: item.corazones, color: "bg-rose-500" },
                     ].map((metric) => (
                       <div key={metric.label}>
                         <div className="mb-1 flex items-center justify-between text-xs text-slate-500">
@@ -741,10 +701,6 @@ export default function AdminMetricasPage() {
                 ))}
               </div>
 
-              <div className="mt-6 rounded-2xl bg-rose-50 p-4">
-                <div className="mb-1 text-sm text-rose-700">Corazones en eventos</div>
-                <div className="text-2xl font-semibold text-slate-900">{eventLikeTotal}</div>
-              </div>
             </section>
           </div>
         </>

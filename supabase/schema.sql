@@ -43,6 +43,9 @@ add column if not exists localidad text;
 alter table public.cursos
 add column if not exists localidad text;
 
+alter table public.cursos
+add column if not exists edades text[] default array['todos'];
+
 alter table public.eventos
 add column if not exists localidad text;
 
@@ -250,6 +253,7 @@ create table if not exists public.cursos (
   descripcion text not null,
   responsable text not null,
   contacto text not null,
+  edades text[] default array['todos'],
   plan_suscripcion text,
   estado_suscripcion text default 'pendiente',
   web_url text,
@@ -329,6 +333,19 @@ create table if not exists public.admin_actividad (
   objetivo text,
   detalle text,
   created_at timestamp with time zone default now()
+);
+
+create table if not exists public.avisos_destacados (
+  id bigint generated always as identity primary key,
+  imagen text not null,
+  tipo_propuesta text not null check (
+    tipo_propuesta in ('institucion', 'comercio', 'servicio', 'curso', 'turismo')
+  ),
+  propuesta_id bigint not null,
+  activo boolean not null default true,
+  espera_segundos integer not null default 20 check (espera_segundos >= 0),
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now()
 );
 
 create table if not exists public.share_events (
@@ -446,35 +463,6 @@ for select
 to anon, authenticated
 using (true);
 
-create table if not exists public.event_likes (
-  id bigint generated always as identity primary key,
-  event_id text not null,
-  browser_key text not null,
-  event_title text,
-  created_at timestamp with time zone default now(),
-  constraint event_likes_event_browser_unique unique (event_id, browser_key)
-);
-
-alter table public.event_likes enable row level security;
-
-drop policy if exists "Allow public insert on event_likes"
-on public.event_likes;
-
-create policy "Allow public insert on event_likes"
-on public.event_likes
-for insert
-to anon, authenticated
-with check (true);
-
-drop policy if exists "Allow public read on event_likes"
-on public.event_likes;
-
-create policy "Allow public read on event_likes"
-on public.event_likes
-for select
-to anon, authenticated
-using (true);
-
 create table if not exists public.content_visits (
   id bigint generated always as identity primary key,
   section text not null,
@@ -570,6 +558,12 @@ on public.instituciones (estado, id desc);
 create index if not exists instituciones_plan_suscripcion_id_idx
 on public.instituciones (plan_suscripcion, id desc);
 
+create index if not exists avisos_destacados_activo_id_idx
+on public.avisos_destacados (activo, id desc);
+
+create index if not exists avisos_destacados_tipo_propuesta_idx
+on public.avisos_destacados (tipo_propuesta, propuesta_id);
+
 create index if not exists eventos_estado_fecha_idx
 on public.eventos (estado, fecha, fecha_fin);
 
@@ -609,6 +603,3 @@ on public.external_link_clicks (created_at desc);
 
 create index if not exists external_link_clicks_section_item_idx
 on public.external_link_clicks (section, item_id);
-
-create index if not exists event_likes_created_at_idx
-on public.event_likes (created_at desc);

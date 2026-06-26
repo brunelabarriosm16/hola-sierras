@@ -14,13 +14,19 @@ import { supabase } from "../supabase"
 type ExternalLinksForm = { webUrl: string; instagramUrl: string; facebookUrl: string }
 type ComercioForm = ExternalLinksForm & { nombre: string; direccion: string; localidad: string; telefono: string; descripcion: string; usaWhatsapp: boolean }
 type ServicioForm = ExternalLinksForm & { nombre: string; categoria: string; descripcion: string; responsable: string; contacto: string; direccion: string; localidad: string; usaWhatsapp: boolean }
-type CursoForm = ExternalLinksForm & { nombre: string; descripcion: string; responsable: string; contacto: string; localidad: string; usaWhatsapp: boolean }
+type CursoForm = ExternalLinksForm & { nombre: string; descripcion: string; responsable: string; contacto: string; localidad: string; edades: string[]; usaWhatsapp: boolean }
 type InstitucionForm = ExternalLinksForm & { nombre: string; descripcion: string; direccion: string; localidad: string; telefono: string; usaWhatsapp: boolean }
 
 const serviceCategories = ["Profesionales", "Alojamientos", "Oficios", "Servicios"]
+const courseAgeOptions = [
+  { value: "niños", label: "Niños" },
+  { value: "adolescentes", label: "Adolescentes" },
+  { value: "adultos", label: "Adultos" },
+  { value: "todos", label: "Todos" },
+] as const
 const initialComercio: ComercioForm = { nombre: "", direccion: "", localidad: "", telefono: "", descripcion: "", webUrl: "", instagramUrl: "", facebookUrl: "", usaWhatsapp: true }
 const initialServicio: ServicioForm = { nombre: "", categoria: "Profesionales", descripcion: "", responsable: "", contacto: "", direccion: "", localidad: "", webUrl: "", instagramUrl: "", facebookUrl: "", usaWhatsapp: true }
-const initialCurso: CursoForm = { nombre: "", descripcion: "", responsable: "", contacto: "", localidad: "", webUrl: "", instagramUrl: "", facebookUrl: "", usaWhatsapp: true }
+const initialCurso: CursoForm = { nombre: "", descripcion: "", responsable: "", contacto: "", localidad: "", edades: ["todos"], webUrl: "", instagramUrl: "", facebookUrl: "", usaWhatsapp: true }
 const initialInstitucion: InstitucionForm = { nombre: "", descripcion: "", direccion: "", localidad: "", telefono: "", webUrl: "", instagramUrl: "", facebookUrl: "", usaWhatsapp: true }
 function formatEventState(status?: string | null) {
   const normalized = normalizeEventStatus(status)
@@ -52,7 +58,7 @@ function buildOnboardingPayload(params: { type: UserEntityType; email: string; c
     return { table: "servicios" as const, payload: { nombre: params.servicio.nombre.trim(), categoria: params.servicio.categoria, descripcion: params.servicio.descripcion.trim() || null, responsable: params.servicio.responsable.trim() || null, contacto: params.servicio.contacto.trim() || null, direccion: params.servicio.direccion.trim() || null, localidad: params.servicio.localidad || null, web_url: params.servicio.webUrl.trim() || null, instagram_url: params.servicio.instagramUrl.trim() || null, facebook_url: params.servicio.facebookUrl.trim() || null, imagen: null, estado: "borrador", owner_email: params.email, usa_whatsapp: params.servicio.usaWhatsapp } }
   }
   if (params.type === "curso") {
-    return { table: "cursos" as const, payload: { nombre: params.curso.nombre.trim(), descripcion: params.curso.descripcion.trim(), responsable: params.curso.responsable.trim(), contacto: params.curso.contacto.trim(), localidad: params.curso.localidad || null, web_url: params.curso.webUrl.trim() || null, instagram_url: params.curso.instagramUrl.trim() || null, facebook_url: params.curso.facebookUrl.trim() || null, imagen: null, estado: "borrador", owner_email: params.email, usa_whatsapp: params.curso.usaWhatsapp } }
+    return { table: "cursos" as const, payload: { nombre: params.curso.nombre.trim(), descripcion: params.curso.descripcion.trim(), responsable: params.curso.responsable.trim(), contacto: params.curso.contacto.trim(), localidad: params.curso.localidad || null, edades: params.curso.edades.length > 0 ? params.curso.edades : ["todos"], web_url: params.curso.webUrl.trim() || null, instagram_url: params.curso.instagramUrl.trim() || null, facebook_url: params.curso.facebookUrl.trim() || null, imagen: null, estado: "borrador", owner_email: params.email, usa_whatsapp: params.curso.usaWhatsapp } }
   }
   return { table: "instituciones" as const, payload: { nombre: params.institucion.nombre.trim(), descripcion: params.institucion.descripcion.trim() || null, direccion: params.institucion.direccion.trim() || null, localidad: params.institucion.localidad || null, telefono: params.institucion.telefono.trim() || null, web_url: params.institucion.webUrl.trim() || null, instagram_url: params.institucion.instagramUrl.trim() || null, facebook_url: params.institucion.facebookUrl.trim() || null, foto: null, estado: "borrador", owner_email: params.email, usa_whatsapp: params.institucion.usaWhatsapp } }
 }
@@ -275,7 +281,7 @@ export default function UsuariosHomePage() {
 
               {entityType === "servicio" ? <div className="space-y-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5"><Field label="Nombre del servicio" value={servicio.nombre} onChange={(value) => setServicio((current) => ({ ...current, nombre: value }))} required /><div className="space-y-2"><label className="text-sm font-medium text-slate-700">Categoria</label><select value={servicio.categoria} onChange={(event) => setServicio((current) => ({ ...current, categoria: event.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-400">{serviceCategories.map((category) => <option key={category} value={category}>{category}</option>)}</select></div><div className="grid gap-4 md:grid-cols-2"><Field label="Responsable" value={servicio.responsable} onChange={(value) => setServicio((current) => ({ ...current, responsable: value }))} /><Field label="Contacto" value={servicio.contacto} onChange={(value) => setServicio((current) => ({ ...current, contacto: value }))} /></div><Field label="Direccion" value={servicio.direccion} onChange={(value) => setServicio((current) => ({ ...current, direccion: value }))} /><LocalidadField value={servicio.localidad} onChange={(value) => setServicio((current) => ({ ...current, localidad: value }))} /><TextAreaField label="Descripcion" value={servicio.descripcion} onChange={(value) => setServicio((current) => ({ ...current, descripcion: value }))} /><ExternalLinksFields webUrl={servicio.webUrl} instagramUrl={servicio.instagramUrl} facebookUrl={servicio.facebookUrl} onWebChange={(value) => setServicio((current) => ({ ...current, webUrl: value }))} onInstagramChange={(value) => setServicio((current) => ({ ...current, instagramUrl: value }))} onFacebookChange={(value) => setServicio((current) => ({ ...current, facebookUrl: value }))} /><CheckboxField label="Este contacto tiene WhatsApp" checked={servicio.usaWhatsapp} onChange={(checked) => setServicio((current) => ({ ...current, usaWhatsapp: checked }))} /></div> : null}
 
-              {entityType === "curso" ? <div className="space-y-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5"><Field label="Nombre del curso o clase" value={curso.nombre} onChange={(value) => setCurso((current) => ({ ...current, nombre: value }))} required /><TextAreaField label="Descripcion" value={curso.descripcion} onChange={(value) => setCurso((current) => ({ ...current, descripcion: value }))} required /><div className="grid gap-4 md:grid-cols-2"><Field label="Responsable" value={curso.responsable} onChange={(value) => setCurso((current) => ({ ...current, responsable: value }))} required /><Field label="Contacto" value={curso.contacto} onChange={(value) => setCurso((current) => ({ ...current, contacto: value }))} required /></div><LocalidadField value={curso.localidad} onChange={(value) => setCurso((current) => ({ ...current, localidad: value }))} /><ExternalLinksFields webUrl={curso.webUrl} instagramUrl={curso.instagramUrl} facebookUrl={curso.facebookUrl} onWebChange={(value) => setCurso((current) => ({ ...current, webUrl: value }))} onInstagramChange={(value) => setCurso((current) => ({ ...current, instagramUrl: value }))} onFacebookChange={(value) => setCurso((current) => ({ ...current, facebookUrl: value }))} /><CheckboxField label="Este contacto tiene WhatsApp" checked={curso.usaWhatsapp} onChange={(checked) => setCurso((current) => ({ ...current, usaWhatsapp: checked }))} /></div> : null}
+              {entityType === "curso" ? <div className="space-y-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5"><Field label="Nombre del curso o clase" value={curso.nombre} onChange={(value) => setCurso((current) => ({ ...current, nombre: value }))} required /><TextAreaField label="Descripcion" value={curso.descripcion} onChange={(value) => setCurso((current) => ({ ...current, descripcion: value }))} required /><CourseAgeField value={curso.edades} onChange={(edades) => setCurso((current) => ({ ...current, edades }))} /><div className="grid gap-4 md:grid-cols-2"><Field label="Responsable" value={curso.responsable} onChange={(value) => setCurso((current) => ({ ...current, responsable: value }))} required /><Field label="Contacto" value={curso.contacto} onChange={(value) => setCurso((current) => ({ ...current, contacto: value }))} required /></div><LocalidadField value={curso.localidad} onChange={(value) => setCurso((current) => ({ ...current, localidad: value }))} /><ExternalLinksFields webUrl={curso.webUrl} instagramUrl={curso.instagramUrl} facebookUrl={curso.facebookUrl} onWebChange={(value) => setCurso((current) => ({ ...current, webUrl: value }))} onInstagramChange={(value) => setCurso((current) => ({ ...current, instagramUrl: value }))} onFacebookChange={(value) => setCurso((current) => ({ ...current, facebookUrl: value }))} /><CheckboxField label="Este contacto tiene WhatsApp" checked={curso.usaWhatsapp} onChange={(checked) => setCurso((current) => ({ ...current, usaWhatsapp: checked }))} /></div> : null}
 
               {entityType === "institucion" ? <div className="space-y-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5"><Field label="Nombre de la institucion" value={institucion.nombre} onChange={(value) => setInstitucion((current) => ({ ...current, nombre: value }))} required /><div className="grid gap-4 md:grid-cols-2"><Field label="Direccion" value={institucion.direccion} onChange={(value) => setInstitucion((current) => ({ ...current, direccion: value }))} /><Field label="Telefono" value={institucion.telefono} onChange={(value) => setInstitucion((current) => ({ ...current, telefono: value }))} /></div><LocalidadField value={institucion.localidad} onChange={(value) => setInstitucion((current) => ({ ...current, localidad: value }))} /><TextAreaField label="Descripcion" value={institucion.descripcion} onChange={(value) => setInstitucion((current) => ({ ...current, descripcion: value }))} /><ExternalLinksFields webUrl={institucion.webUrl} instagramUrl={institucion.instagramUrl} facebookUrl={institucion.facebookUrl} onWebChange={(value) => setInstitucion((current) => ({ ...current, webUrl: value }))} onInstagramChange={(value) => setInstitucion((current) => ({ ...current, instagramUrl: value }))} onFacebookChange={(value) => setInstitucion((current) => ({ ...current, facebookUrl: value }))} /><CheckboxField label="Este telefono tiene WhatsApp" checked={institucion.usaWhatsapp} onChange={(checked) => setInstitucion((current) => ({ ...current, usaWhatsapp: checked }))} /></div> : null}
 
@@ -658,6 +664,41 @@ function TextAreaField({ label, value, onChange, required }: { label: string; va
 
 function CheckboxField({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
   return <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"><input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" /><span>{label}</span></label>
+}
+
+function CourseAgeField({ value, onChange }: { value: string[]; onChange: (value: string[]) => void }) {
+  const normalized = value.length > 0 ? value : ["todos"]
+  const toggleAge = (age: string) => {
+    if (age === "todos") {
+      onChange(["todos"])
+      return
+    }
+
+    const withoutAll = normalized.filter((item) => item !== "todos")
+    const next = withoutAll.includes(age)
+      ? withoutAll.filter((item) => item !== age)
+      : [...withoutAll, age]
+
+    onChange(next.length > 0 ? next : ["todos"])
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="text-sm font-medium text-slate-700">Edad</div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {courseAgeOptions.map((option) => {
+          const checked = normalized.includes(option.value)
+
+          return (
+            <label key={option.value} className={`flex cursor-pointer items-center gap-3 rounded-2xl border bg-white px-4 py-3 text-sm font-medium transition ${checked ? "border-blue-500 text-blue-700" : "border-slate-200 text-slate-700 hover:border-blue-300"}`}>
+              <input type="checkbox" checked={checked} onChange={() => toggleAge(option.value)} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+              <span>{option.label}</span>
+            </label>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 function ExternalLinksFields({ webUrl, instagramUrl, facebookUrl, onWebChange, onInstagramChange, onFacebookChange }: { webUrl: string; instagramUrl: string; facebookUrl: string; onWebChange: (value: string) => void; onInstagramChange: (value: string) => void; onFacebookChange: (value: string) => void }) {

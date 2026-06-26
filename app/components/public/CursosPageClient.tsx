@@ -13,6 +13,37 @@ import { recordContentVisit, recordSiteVisit } from "../../lib/contentVisits"
 import { buildPublicNav } from "../../lib/publicNav"
 import { recordViewMore } from "../../lib/viewMoreTracking"
 
+const COURSE_AGE_OPTIONS = [
+  { value: "niños", label: "Niños" },
+  { value: "adolescentes", label: "Adolescentes" },
+  { value: "adultos", label: "Adultos" },
+  { value: "todos", label: "Todos" },
+] as const
+
+type CourseAge = (typeof COURSE_AGE_OPTIONS)[number]["value"]
+
+const courseAgeLabels = COURSE_AGE_OPTIONS.reduce<Record<string, string>>(
+  (acc, option) => {
+    acc[option.value] = option.label
+    return acc
+  },
+  {}
+)
+
+function normalizeCourseAges(edades?: string[] | null): CourseAge[] {
+  const allowed = new Set<CourseAge>(COURSE_AGE_OPTIONS.map((option) => option.value))
+  const normalized = (edades || []).filter((edad): edad is CourseAge =>
+    allowed.has(edad as CourseAge)
+  )
+
+  if (normalized.includes("todos")) return ["todos"]
+  return normalized.length > 0 ? Array.from(new Set(normalized)) : ["todos"]
+}
+
+function formatCourseAges(edades?: string[] | null) {
+  return normalizeCourseAges(edades).map((edad) => courseAgeLabels[edad]).join(", ")
+}
+
 export type Curso = {
   id: number
   nombre: string
@@ -20,6 +51,7 @@ export type Curso = {
   responsable: string
   contacto: string
   localidad?: string | null
+  edades?: string[] | null
   web_url?: string | null
   instagram_url?: string | null
   facebook_url?: string | null
@@ -31,6 +63,7 @@ export type Curso = {
 export function CursosPageClient({ initialCursos }: { initialCursos: Curso[] }) {
   const [cursos] = useState<Curso[]>(initialCursos)
   const [search, setSearch] = useState("")
+  const [ageFilters, setAgeFilters] = useState<CourseAge[]>(["todos"])
   const [selectedCursoId, setSelectedCursoId] = useState<string | null>(() =>
     typeof window === "undefined"
       ? null
@@ -74,14 +107,36 @@ export function CursosPageClient({ initialCursos }: { initialCursos: Curso[] }) 
 
   const cursosFiltrados = useMemo(() => {
     const term = search.trim().toLowerCase()
-    if (!term) return cursos
+    const showAllAges = ageFilters.length === 0 || ageFilters.includes("todos")
 
-    return cursos.filter((curso) =>
-      `${curso.nombre} ${curso.descripcion || ""} ${curso.responsable || ""} ${curso.contacto || ""} ${curso.localidad || ""}`
+    return cursos.filter((curso) => {
+      const cursoAges = normalizeCourseAges(curso.edades)
+      const matchesAge =
+        showAllAges ||
+        cursoAges.includes("todos") ||
+        ageFilters.some((age) => cursoAges.includes(age))
+      const matchesSearch =
+        !term ||
+        `${curso.nombre} ${curso.descripcion || ""} ${curso.responsable || ""} ${curso.contacto || ""} ${curso.localidad || ""} ${formatCourseAges(curso.edades)}`
         .toLowerCase()
         .includes(term)
-    )
-  }, [cursos, search])
+
+      return matchesAge && matchesSearch
+    })
+  }, [ageFilters, cursos, search])
+
+  const toggleAgeFilter = (age: CourseAge) => {
+    setAgeFilters((current) => {
+      if (age === "todos") return ["todos"]
+
+      const withoutAll = current.filter((item) => item !== "todos")
+      const next = withoutAll.includes(age)
+        ? withoutAll.filter((item) => item !== age)
+        : [...withoutAll, age]
+
+      return next.length > 0 ? next : ["todos"]
+    })
+  }
 
   const handleOpenCurso = (curso: Curso) => {
     void recordViewMore("cursos", String(curso.id), curso.nombre)
@@ -107,6 +162,7 @@ export function CursosPageClient({ initialCursos }: { initialCursos: Curso[] }) 
         title={selectedCurso?.nombre || ""}
         imageSrc={selectedCurso?.imagen || null}
         imageAlt={selectedCurso?.nombre || "Curso"}
+        badge={selectedCurso ? formatCourseAges(selectedCurso.edades) : null}
         description={selectedCurso?.descripcion || null}
         meta={[
           ...(selectedCurso?.responsable
@@ -169,7 +225,7 @@ export function CursosPageClient({ initialCursos }: { initialCursos: Curso[] }) 
           Descubri propuestas de aprendizaje, talleres y clases disponibles en la ciudad
         </p>
 
-        <div className="mt-6 max-w-xl">
+        <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
           <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-3">
             <Search className="h-4 w-4 text-gray-400" />
             <input
@@ -179,6 +235,27 @@ export function CursosPageClient({ initialCursos }: { initialCursos: Curso[] }) 
               placeholder="Buscar por curso, responsable o descripcion"
               className="w-full text-sm outline-none"
             />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {COURSE_AGE_OPTIONS.map((option) => {
+              const active = ageFilters.includes(option.value)
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => toggleAgeFilter(option.value)}
+                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                    active
+                      ? "border-blue-600 bg-blue-600 text-white"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:text-blue-600"
+                  }`}
+                  aria-pressed={active}
+                >
+                  {option.label}
+                </button>
+              )
+            })}
           </div>
         </div>
 
@@ -216,6 +293,17 @@ export function CursosPageClient({ initialCursos }: { initialCursos: Curso[] }) 
                   <h2 className="text-base font-semibold text-gray-900 md:text-xl">
                     {curso.nombre}
                   </h2>
+
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {normalizeCourseAges(curso.edades).map((edad) => (
+                      <span
+                        key={edad}
+                        className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700"
+                      >
+                        {courseAgeLabels[edad]}
+                      </span>
+                    ))}
+                  </div>
 
                   <p className="line-clamp-2 mt-2 whitespace-pre-line text-xs leading-relaxed text-gray-700 md:line-clamp-3 md:mt-3 md:text-sm">
                     {curso.descripcion}

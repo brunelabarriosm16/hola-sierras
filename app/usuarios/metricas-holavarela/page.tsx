@@ -109,10 +109,8 @@ export default function UsuariosMetricasHolaVarelaPage() {
         whatsappRows15,
         viewMoreRows15,
         externalRows15,
-        likesRows15,
         visitRows48,
         contactRows48,
-        likesRows48,
         eventRows48,
         commerceRows48,
         serviceRows48,
@@ -139,10 +137,6 @@ export default function UsuariosMetricasHolaVarelaPage() {
           supabase.from("external_link_clicks").select("created_at").gte("created_at", since15),
           "los clics externos de 15 dias"
         ),
-        withFallback<InteractionRow>(
-          supabase.from("event_likes").select("created_at").gte("created_at", since15),
-          "los likes de 15 dias"
-        ),
         withFallback<BrowserVisitRow>(
           supabase.from("content_visits").select("browser_key, created_at").eq("section", "site_pages").gte("created_at", since2),
           "las visitas de 48 horas"
@@ -150,10 +144,6 @@ export default function UsuariosMetricasHolaVarelaPage() {
         withFallback<InteractionRow>(
           supabase.from("contacto_solicitudes").select("created_at").gte("created_at", since2),
           "los mensajes de 48 horas"
-        ),
-        withFallback<InteractionRow>(
-          supabase.from("event_likes").select("created_at").gte("created_at", since2),
-          "los likes de 48 horas"
         ),
         withFallback<InteractionRow>(
           supabase.from("eventos").select("created_at").gte("created_at", since2),
@@ -187,8 +177,7 @@ export default function UsuariosMetricasHolaVarelaPage() {
           shareRows15.length +
           whatsappRows15.length +
           viewMoreRows15.length +
-          externalRows15.length +
-          likesRows15.length,
+          externalRows15.length,
         whatsapp15Days: whatsappRows15.length,
       })
 
@@ -208,10 +197,6 @@ export default function UsuariosMetricasHolaVarelaPage() {
           {
             label: `${contactRows48.length} ${contactRows48.length === 1 ? "mensaje nuevo" : "mensajes nuevos"}`,
             value: contactRows48.length,
-          },
-          {
-            label: `${likesRows48.length} ${likesRows48.length === 1 ? "nuevo like" : "nuevos likes"}`,
-            value: likesRows48.length,
           },
           {
             label: `${eventRows48.length} ${eventRows48.length === 1 ? "nuevo evento subido" : "nuevos eventos subidos"}`,

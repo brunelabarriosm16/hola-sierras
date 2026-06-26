@@ -7,6 +7,7 @@ type CursoPayload = {
   descripcion?: string
   responsable?: string
   contacto?: string
+  edades?: string[] | null
   localidad?: string | null
   web_url?: string | null
   instagram_url?: string | null
@@ -19,6 +20,19 @@ type CursoPayload = {
 
 function cleanText(value?: string | null) {
   return value?.trim() || ""
+}
+
+const courseAges = ["niños", "adolescentes", "adultos", "todos"] as const
+type CourseAge = (typeof courseAges)[number]
+
+function cleanCourseAges(value?: string[] | null): CourseAge[] {
+  const allowed = new Set<CourseAge>(courseAges)
+  const edades = (value || []).filter((edad): edad is CourseAge =>
+    allowed.has(edad as CourseAge)
+  )
+
+  if (edades.includes("todos")) return ["todos"]
+  return edades.length > 0 ? Array.from(new Set(edades)) : ["todos"]
 }
 
 export async function POST(request: Request) {
@@ -42,6 +56,7 @@ export async function POST(request: Request) {
       descripcion,
       responsable,
       contacto,
+      edades: cleanCourseAges(body.edades),
       localidad: cleanText(body.localidad) || null,
       web_url: cleanText(body.web_url) || null,
       instagram_url: cleanText(body.instagram_url) || null,

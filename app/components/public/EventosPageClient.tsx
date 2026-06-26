@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState, type KeyboardEvent } from "react"
 import { ArrowRight, CalendarDays, MapPin, Phone, Search } from "lucide-react"
 import { ContactActionLink } from "../ContactActionLink"
 import { ExternalLinksButtons } from "../ExternalLinksButtons"
-import { EventLikeButton } from "../EventLikeButton"
 import { OptimizedImage } from "../OptimizedImage"
 import { PublicDetailModal } from "../PublicDetailModal"
 import { PublicHeader } from "../PublicHeader"
@@ -13,7 +12,6 @@ import { ShareButton } from "../ShareButton"
 import { SorteoParticipationForm } from "../SorteoParticipationForm"
 import { recordContentVisit, recordSiteVisit } from "../../lib/contentVisits"
 import { formatEventDateRange } from "../../lib/eventDates"
-import { fetchEventLikes, recordEventLike } from "../../lib/eventLikes"
 import { parseEventDescription } from "../../lib/eventSubmissionMeta"
 import { getGoogleMapsSearchUrl } from "../../lib/maps"
 import { buildPublicNav } from "../../lib/publicNav"
@@ -52,9 +50,6 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
   const [eventos] = useState<Evento[]>(initialEventos)
   const [search, setSearch] = useState("")
   const [categoria, setCategoria] = useState("Todos")
-  const [eventLikeCounts, setEventLikeCounts] = useState<Record<string, number>>({})
-  const [likedEvents, setLikedEvents] = useState<Record<string, boolean>>({})
-  const [likingEventId, setLikingEventId] = useState<string | null>(null)
   const [selectedEventoId, setSelectedEventoId] = useState<string | null>(() =>
     typeof window === "undefined"
       ? null
@@ -84,17 +79,6 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
     void recordSiteVisit("eventos-page", "Listado de eventos")
   }, [])
 
-  useEffect(() => {
-    const loadEventLikes = async () => {
-      const eventIds = eventos.map((evento) => String(evento.id))
-      const { countMap, likedMap } = await fetchEventLikes(eventIds)
-      setEventLikeCounts(countMap)
-      setLikedEvents(likedMap)
-    }
-
-    void loadEventLikes()
-  }, [eventos])
-
   const whatsappLink = (telefono: string | null) => {
     if (!telefono) return "#"
     const limpio = telefono.replace(/\D/g, "")
@@ -108,29 +92,6 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
   const getContactHref = (telefono: string | null, usaWhatsapp?: boolean | null) => {
     if (!telefono) return "#"
     return usaWhatsapp === false ? `tel:${telefono}` : whatsappLink(telefono)
-  }
-
-  const handleEventLike = async (eventId: string, eventTitle: string) => {
-    if (likedEvents[eventId] || likingEventId === eventId) return
-
-    setLikingEventId(eventId)
-    const result = await recordEventLike(eventId, eventTitle)
-
-    if (result.status === "liked") {
-      setEventLikeCounts((prev) => ({
-        ...prev,
-        [eventId]: (prev[eventId] || 0) + 1,
-      }))
-    }
-
-    if (result.status === "liked" || result.status === "exists") {
-      setLikedEvents((prev) => ({
-        ...prev,
-        [eventId]: true,
-      }))
-    }
-
-    setLikingEventId(null)
   }
 
   const handleOpenEvento = (evento: Evento) => {
@@ -227,17 +188,6 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
                 <Phone className="h-4 w-4" />
                 {selectedEvento.usa_whatsapp === false ? "Llamar" : "WhatsApp"}
               </ContactActionLink>
-            ) : null}
-            {selectedEvento ? (
-              <EventLikeButton
-                count={eventLikeCounts[String(selectedEvento.id)] || 0}
-                liked={Boolean(likedEvents[String(selectedEvento.id)])}
-                onClick={() =>
-                  void handleEventLike(String(selectedEvento.id), selectedEvento.titulo)
-                }
-                disabled={likingEventId === String(selectedEvento.id)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-600 transition hover:bg-emerald-100 disabled:cursor-default disabled:opacity-70"
-              />
             ) : null}
             {selectedEvento ? (
               <ShareButton
@@ -400,16 +350,6 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
                 <p className="line-clamp-2 mt-2 whitespace-pre-line text-xs leading-relaxed text-gray-700 md:line-clamp-3 md:mt-3 md:text-sm">
                   {parseEventDescription(evento.descripcion).baseDescription}
                 </p>
-
-                <div className="mt-4" onClick={(event) => event.stopPropagation()}>
-                  <EventLikeButton
-                    count={eventLikeCounts[String(evento.id)] || 0}
-                    liked={Boolean(likedEvents[String(evento.id)])}
-                    onClick={() => void handleEventLike(String(evento.id), evento.titulo)}
-                    disabled={likingEventId === String(evento.id)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600 transition hover:bg-emerald-100 disabled:cursor-default disabled:opacity-70"
-                  />
-                </div>
 
                 <button
                   type="button"

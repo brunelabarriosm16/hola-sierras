@@ -9,6 +9,7 @@ export type AdminContentSection =
   | "Comercios"
   | "Cursos"
   | "Eventos"
+  | "Destacados"
   | "Instituciones"
   | "Servicios"
 

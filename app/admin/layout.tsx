@@ -14,6 +14,7 @@ import {
   GraduationCap,
   LayoutDashboard,
   LogOut,
+  Megaphone,
   Mail,
   Menu,
   Radio,
@@ -38,6 +39,7 @@ const menuItems = [
   { href: "/admin/servicios", icon: ShieldAlert, label: "Servicios", roles: ["superadmin", "admin"] },
   { href: "/admin/instituciones", icon: Building2, label: "Instituciones", roles: ["superadmin", "admin"] },
   { href: "/admin/cursos", icon: GraduationCap, label: "Cursos", roles: ["superadmin", "admin"] },
+  { href: "/admin/destacados", icon: Megaphone, label: "Destacados", roles: ["superadmin", "admin"] },
   { href: "/admin/contactos", icon: Mail, label: "Contactos", roles: ["superadmin", "admin"] },
   { href: "/admin/usuarios", icon: Users, label: "Usuarios", roles: ["superadmin", "admin"] },
   { href: "/admin/suscripciones", icon: CreditCard, label: "Suscripciones", roles: ["superadmin", "admin"] },
@@ -62,6 +64,7 @@ const menuGroups = [
       "/admin/servicios",
       "/admin/instituciones",
       "/admin/cursos",
+      "/admin/destacados",
     ],
   },
   {

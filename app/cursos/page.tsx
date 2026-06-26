@@ -9,7 +9,7 @@ const getCursos = unstable_cache(
   async () => {
     const { data } = await supabaseServer
       .from("cursos")
-      .select("id, nombre, descripcion, responsable, contacto, localidad, web_url, instagram_url, facebook_url, imagen, estado, usa_whatsapp")
+      .select("id, nombre, descripcion, responsable, contacto, localidad, edades, web_url, instagram_url, facebook_url, imagen, estado, usa_whatsapp")
       .eq("estado", "activo")
       .order("id", { ascending: false })
 

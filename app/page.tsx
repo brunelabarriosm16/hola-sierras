@@ -22,6 +22,7 @@ const getHomeSupabaseData = unstable_cache(
     const today = new Date().toISOString().slice(0, 10)
 
     const [
+      { data: featuredNotices },
       { data: featuredBusinesses },
       { data: eventosData },
       { data: cursos },
@@ -29,6 +30,12 @@ const getHomeSupabaseData = unstable_cache(
       { data: instituciones },
       { data: sobreVarelaData },
     ] = await Promise.all([
+      supabaseServer
+        .from("avisos_destacados")
+        .select("id, imagen, tipo_propuesta, propuesta_id, espera_segundos")
+        .eq("activo", true)
+        .order("id", { ascending: false })
+        .limit(24),
       supabaseServer
         .from("comercios")
         .select("id, nombre, descripcion, premium_detalle, premium_galeria, premium_activo, direccion, localidad, telefono, web_url, instagram_url, facebook_url, imagen, imagen_url, destacado, plan_suscripcion, usa_whatsapp")
@@ -44,7 +51,7 @@ const getHomeSupabaseData = unstable_cache(
         .order("fecha", { ascending: true }),
       supabaseServer
         .from("cursos")
-        .select("id, nombre, descripcion, responsable, contacto, localidad, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
+        .select("id, nombre, descripcion, responsable, contacto, localidad, edades, web_url, instagram_url, facebook_url, imagen, destacado, plan_suscripcion, usa_whatsapp")
         .or("estado.is.null,estado.eq.activo")
         .order("id", { ascending: false })
         .limit(24),
@@ -68,6 +75,7 @@ const getHomeSupabaseData = unstable_cache(
     ])
 
     return {
+      featuredNotices: featuredNotices || [],
       featuredBusinesses: featuredBusinesses || [],
       eventos: (eventosData || []).slice(0, 6),
       cursos: (cursos || []).slice(0, 8),
@@ -80,7 +88,7 @@ const getHomeSupabaseData = unstable_cache(
         : defaultSobreVarela,
     } satisfies Omit<HomePageData, "weather">
   },
-  ["home-supabase-data-v2"],
+  ["home-supabase-data-v3"],
   { revalidate: 3600 }
 )
 

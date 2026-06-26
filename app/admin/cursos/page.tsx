@@ -22,10 +22,38 @@ import {
   safeLogAdminActivity,
 } from "../../lib/adminContentActions"
 
+const COURSE_AGE_OPTIONS = [
+  { value: "niños", label: "Niños" },
+  { value: "adolescentes", label: "Adolescentes" },
+  { value: "adultos", label: "Adultos" },
+  { value: "todos", label: "Todos" },
+] as const
+
+type CourseAge = (typeof COURSE_AGE_OPTIONS)[number]["value"]
+
+const courseAgeLabels = COURSE_AGE_OPTIONS.reduce<Record<string, string>>(
+  (acc, option) => {
+    acc[option.value] = option.label
+    return acc
+  },
+  {}
+)
+
+function normalizeCourseAges(edades?: string[] | null): CourseAge[] {
+  const allowed = new Set<CourseAge>(COURSE_AGE_OPTIONS.map((option) => option.value))
+  const normalized = (edades || []).filter((edad): edad is CourseAge =>
+    allowed.has(edad as CourseAge)
+  )
+
+  if (normalized.includes("todos")) return ["todos"]
+  return normalized.length > 0 ? Array.from(new Set(normalized)) : ["todos"]
+}
+
 type Curso = {
   id: number
   nombre: string
   descripcion: string
+  edades?: string[] | null
   plan_suscripcion?: SubscriptionPlanKey | null
   estado_suscripcion?: SubscriptionStatusKey | null
   responsable: string
@@ -50,6 +78,7 @@ type CursoForm = Omit<
 const initialForm: CursoForm = {
   nombre: "",
   descripcion: "",
+  edades: ["todos"],
   responsable: "",
   contacto: "",
   localidad: "",
@@ -80,7 +109,14 @@ export default function AdminCursosPage() {
         statusFilter === "all" || (curso.estado || "activo") === statusFilter
       const matchesSearch =
         !normalizedSearch ||
-        [curso.nombre, curso.descripcion, curso.responsable, curso.contacto, curso.localidad]
+        [
+          curso.nombre,
+          curso.descripcion,
+          curso.responsable,
+          curso.contacto,
+          curso.localidad,
+          normalizeCourseAges(curso.edades).map((edad) => courseAgeLabels[edad]).join(" "),
+        ]
           .map((value) => value || "")
           .some((value) => value.toLowerCase().includes(normalizedSearch))
 
@@ -217,6 +253,7 @@ export default function AdminCursosPage() {
     const payload = {
       nombre: formData.nombre,
       descripcion: formData.descripcion,
+      edades: normalizeCourseAges(formData.edades),
       responsable: formData.responsable,
       contacto: formData.contacto,
       localidad: formData.localidad || null,
@@ -271,6 +308,7 @@ export default function AdminCursosPage() {
     setFormData({
       nombre: curso.nombre,
       descripcion: curso.descripcion,
+      edades: normalizeCourseAges(curso.edades),
       responsable: curso.responsable,
       contacto: curso.contacto,
       localidad: normalizeLocalidad(curso.localidad),
@@ -295,6 +333,21 @@ export default function AdminCursosPage() {
         error instanceof Error ? error.message : "No se pudo cargar la imagen."
       )
     }
+  }
+
+  const toggleCourseAge = (age: CourseAge) => {
+    setFormData((prev) => {
+      if (age === "todos") {
+        return { ...prev, edades: ["todos"] }
+      }
+
+      const current = normalizeCourseAges(prev.edades).filter((item) => item !== "todos")
+      const next = current.includes(age)
+        ? current.filter((item) => item !== age)
+        : [...current, age]
+
+      return { ...prev, edades: next.length > 0 ? next : ["todos"] }
+    })
   }
 
   const handleDelete = async (id: number) => {
@@ -468,6 +521,36 @@ export default function AdminCursosPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <div className="mb-2 text-sm font-medium text-slate-900">
+                  Edad
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {COURSE_AGE_OPTIONS.map((option) => {
+                    const checked = normalizeCourseAges(formData.edades).includes(option.value)
+
+                    return (
+                      <label
+                        key={option.value}
+                        className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition ${
+                          checked
+                            ? "border-violet-500 bg-violet-50 text-violet-700"
+                            : "border-slate-200 text-slate-700 hover:border-violet-300"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleCourseAge(option.value)}
+                          className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                        />
+                        <span>{option.label}</span>
+                      </label>
+                    )
+                  })}
+                </div>
               </div>
 
                 <label className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700">
@@ -657,6 +740,16 @@ export default function AdminCursosPage() {
                               Destacado
                             </div>
                           ) : null}
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {normalizeCourseAges(curso.edades).map((edad) => (
+                              <span
+                                key={edad}
+                                className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700"
+                              >
+                                {courseAgeLabels[edad]}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </td>
