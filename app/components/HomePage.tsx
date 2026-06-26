@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type ReactNode,
 } from "react"
 import { useRouter } from "next/navigation"
 import { ContactActionLink } from "./ContactActionLink"
@@ -140,6 +141,26 @@ type Servicio = {
   plan_suscripcion?: string | null
   usa_whatsapp?: boolean | null
 }
+
+type UnifiedDirectoryItem =
+  | {
+      key: string
+      type: "comercio"
+      id: number
+      nombre: string
+      image: string | null
+      destacado: boolean
+      item: Comercio
+    }
+  | {
+      key: string
+      type: "servicio"
+      id: number
+      nombre: string
+      image: string | null
+      destacado: boolean
+      item: Servicio
+    }
 
 type Institucion = {
   id: number
@@ -421,11 +442,6 @@ function isFeaturedListing(item: {
   )
 }
 
-function sliceRotatingItems<T>(items: T[], page: number, pageSize = ITEMS_PER_ROTATION) {
-  const start = page * pageSize
-  return items.slice(start, start + pageSize)
-}
-
 function sliceRotatingItemsCircular<T>(
   items: T[],
   page: number,
@@ -442,6 +458,93 @@ function getScheduledRotationPage(totalPages: number, rotationDays = FEATURED_RO
 
   const daysSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60 * 24))
   return Math.floor(daysSinceEpoch / rotationDays) % totalPages
+}
+
+function LogoGridCard({
+  image,
+  name,
+  fallback,
+  onClick,
+  onKeyDown,
+}: {
+  image: string | null
+  name: string
+  fallback: ReactNode
+  onClick: () => void
+  onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
+}) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      className="group flex aspect-square w-full cursor-pointer flex-col items-center justify-center rounded-[18px] border border-white/80 bg-white/92 p-3 text-center shadow-[0_14px_34px_-26px_rgba(15,23,42,0.5)] transition hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_22px_46px_-28px_rgba(15,23,42,0.4)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 sm:p-4"
+      aria-label={`Ver ficha de ${name}`}
+    >
+      <div className="relative flex h-full max-h-24 w-full items-center justify-center overflow-hidden rounded-[14px] bg-slate-50 sm:max-h-28">
+        {image ? (
+          <OptimizedImage
+            src={image}
+            alt={name}
+            sizes="(max-width: 768px) 33vw, 20vw"
+            className="object-contain p-2 transition duration-200 group-hover:scale-[1.03]"
+          />
+        ) : (
+          fallback
+        )}
+      </div>
+      <span className="mt-2 line-clamp-2 text-[11px] font-semibold leading-tight text-slate-700 sm:text-sm">
+        {name}
+      </span>
+    </div>
+  )
+}
+
+function isTourismProposal(servicio: Servicio) {
+  const searchable = [
+    servicio.nombre,
+    servicio.categoria,
+    servicio.descripcion,
+    servicio.responsable,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+
+  const tourismTerms = [
+    "actividad",
+    "actividades",
+    "astroturismo",
+    "cabalgata",
+    "cabalgatas",
+    "experiencia",
+    "experiencias",
+    "guia",
+    "guiada",
+    "guiadas",
+    "guiado",
+    "guiados",
+    "museo",
+    "museos",
+    "paseo",
+    "paseos",
+    "recreativa",
+    "recreativas",
+    "senderismo",
+    "turismo",
+    "turistica",
+    "turisticas",
+    "turistico",
+    "turisticos",
+    "rural",
+    "visita",
+    "visitas",
+  ]
+
+  return tourismTerms.some((term) => searchable.includes(term))
 }
 
 export function HomePage({ initialData }: { initialData: HomePageData }) {
@@ -477,35 +580,67 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   const [shouldLoadEventLikes, setShouldLoadEventLikes] = useState(false)
   const eventsSectionRef = useRef<HTMLElement | null>(null)
 
-  const featuredBusinessPageCount = Math.max(
-    1,
-    Math.ceil(featuredBusinesses.length / ITEMS_PER_ROTATION)
-  )
-  const scheduledFeaturedBusinessPage = useMemo(
-    () => getScheduledRotationPage(featuredBusinessPageCount),
-    [featuredBusinessPageCount]
-  )
   const orderedServicios = useMemo(
     () =>
       [...servicios].sort((a, b) => Number(isFeaturedListing(b)) - Number(isFeaturedListing(a))),
     [servicios]
   )
-  const servicePageCount = Math.max(1, Math.ceil(orderedServicios.length / ITEMS_PER_ROTATION))
-  const scheduledServicePage = useMemo(
-    () => getScheduledRotationPage(servicePageCount),
-    [servicePageCount]
+  const directoryItems = useMemo<UnifiedDirectoryItem[]>(
+    () =>
+      [
+        ...featuredBusinesses.map((business) => ({
+          key: `comercio-${business.id}`,
+          type: "comercio" as const,
+          id: business.id,
+          nombre: business.nombre,
+          image: business.imagen_url || business.imagen || null,
+          destacado: isFeaturedListing(business),
+          item: business,
+        })),
+        ...orderedServicios.map((servicio) => ({
+          key: `servicio-${servicio.id}`,
+          type: "servicio" as const,
+          id: servicio.id,
+          nombre: servicio.nombre,
+          image: servicio.imagen || null,
+          destacado: isFeaturedListing(servicio),
+          item: servicio,
+        })),
+      ].sort((a, b) => {
+        const featuredDiff = Number(b.destacado) - Number(a.destacado)
+        if (featuredDiff !== 0) return featuredDiff
+        return b.id - a.id
+      }),
+    [featuredBusinesses, orderedServicios]
   )
-  const visibleFeaturedBusinesses = useMemo(
-    () => sliceRotatingItems(featuredBusinesses, scheduledFeaturedBusinessPage),
-    [featuredBusinesses, scheduledFeaturedBusinessPage]
+  const directoryPageCount = Math.max(1, Math.ceil(directoryItems.length / ITEMS_PER_ROTATION))
+  const scheduledDirectoryPage = useMemo(
+    () => getScheduledRotationPage(directoryPageCount),
+    [directoryPageCount]
   )
-  const visibleServicios = useMemo(
-    () => sliceRotatingItemsCircular(orderedServicios, scheduledServicePage),
-    [orderedServicios, scheduledServicePage]
+  const visibleDirectoryItems = useMemo(
+    () => sliceRotatingItemsCircular(directoryItems, scheduledDirectoryPage),
+    [directoryItems, scheduledDirectoryPage]
+  )
+  const tourismProposals = useMemo(
+    () => orderedServicios.filter((servicio) => isTourismProposal(servicio)),
+    [orderedServicios]
+  )
+  const tourismProposalPageCount = Math.max(
+    1,
+    Math.ceil(tourismProposals.length / ITEMS_PER_ROTATION)
+  )
+  const scheduledTourismProposalPage = useMemo(
+    () => getScheduledRotationPage(tourismProposalPageCount),
+    [tourismProposalPageCount]
+  )
+  const visibleTourismProposals = useMemo(
+    () => sliceRotatingItemsCircular(tourismProposals, scheduledTourismProposalPage),
+    [tourismProposals, scheduledTourismProposalPage]
   )
   const visibleEventos = useMemo(() => eventos.slice(0, 8), [eventos])
   const visibleCursos = useMemo(() => cursos.slice(0, 8), [cursos])
-  const visibleInstituciones = useMemo(() => instituciones.slice(0, 10), [instituciones])
+  const visibleInstituciones = useMemo(() => instituciones.slice(0, 15), [instituciones])
 
   const [weatherItems, setWeatherItems] = useState<WeatherData[]>(initialData.weather)
   const [weatherStatus, setWeatherStatus] = useState<"loading" | "ready" | "unavailable">(
@@ -1778,12 +1913,12 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
       <div className="flex flex-col">
       <section id="comercios" className="order-5 py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-10 text-center">
+          <div className="mb-8 text-center">
             <h2 className="text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">
-              Comercios y servicios
+              Comercios y Servicios
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
-              Descubre comercios locales, profesionales, alojamientos y otros servicios de la zona
+              Lugares, profesionales, alojamientos y soluciones locales para recorrer la zona con todo a mano.
             </p>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
               <Link
@@ -1803,285 +1938,191 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 justify-items-center gap-4 xl:grid-cols-4">
-            {visibleFeaturedBusinesses.map((business) => {
-              const imageSrc = business.imagen_url || business.imagen
-
-              return (
-                <div
-                  key={business.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => {
-                    if (business.premium_activo) {
-                      void recordViewMore("comercios", String(business.id), business.nombre)
-                      router.push(`/comercios/${business.id}`)
-                      return
+          {directoryItems.length === 0 ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
+              Todavía no hay comercios ni servicios cargados.
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-3 sm:gap-4 lg:grid-cols-5">
+                {visibleDirectoryItems.map((listing) => (
+                  <LogoGridCard
+                    key={listing.key}
+                    image={listing.image}
+                    name={listing.nombre}
+                    fallback={
+                      listing.type === "comercio" ? (
+                        <Building2 className="h-8 w-8 text-slate-400 sm:h-10 sm:w-10" />
+                      ) : (
+                        <UserRound className="h-8 w-8 text-slate-400 sm:h-10 sm:w-10" />
+                      )
                     }
+                    onClick={() => {
+                      if (listing.type === "comercio") {
+                        const business = listing.item
+                        if (business.premium_activo) {
+                          void recordViewMore("comercios", String(business.id), business.nombre)
+                          router.push(`/comercios/${business.id}`)
+                          return
+                        }
 
-                    handleViewMoreClick(
-                      "comercios",
-                      String(business.id),
-                      business.nombre,
-                      () => setSelectedComercio(business)
-                    )
-                  }}
-                  onKeyDown={(event) =>
-                    handleCardKeyDown(event, () => {
-                      if (business.premium_activo) {
-                        void recordViewMore("comercios", String(business.id), business.nombre)
-                        router.push(`/comercios/${business.id}`)
+                        handleViewMoreClick(
+                          "comercios",
+                          String(business.id),
+                          business.nombre,
+                          () => setSelectedComercio(business)
+                        )
+                        return
+                      }
+
+                      const servicio = listing.item
+                      if (servicio.premium_activo) {
+                        void recordViewMore("servicios", String(servicio.id), servicio.nombre)
+                        router.push(`/servicios/${servicio.id}`)
                         return
                       }
 
                       handleViewMoreClick(
-                        "comercios",
-                        String(business.id),
-                        business.nombre,
-                        () => setSelectedComercio(business)
+                        "servicios",
+                        String(servicio.id),
+                        servicio.nombre,
+                        () => setSelectedServicio(servicio)
                       )
-                    })
-                  }
-                  className={`w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[24px] border bg-white/90 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.5)] transition hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${business.premium_activo ? "border-violet-200 hover:shadow-[0_28px_60px_-30px_rgba(139,92,246,0.35)]" : "border-white/80 hover:shadow-[0_28px_60px_-30px_rgba(59,130,246,0.35)]"}`}
-                >
-                  {imageSrc && (
-                    <div className="relative h-32 w-full overflow-hidden bg-slate-100 sm:h-40">
-                      <OptimizedImage
-                        src={imageSrc}
-                        alt={business.nombre}
-                        sizes="(max-width: 640px) 50vw, (max-width: 1280px) 50vw, 25vw"
-                        className="object-cover"
-                      />
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/82 via-slate-950/48 to-transparent px-3 pb-3 pt-9">
-                        <span className="block text-balance text-sm font-semibold leading-tight text-white drop-shadow-sm sm:text-base">
-                          {business.nombre}
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                    }}
+                    onKeyDown={(event) =>
+                      handleCardKeyDown(event, () => {
+                        if (listing.type === "comercio") {
+                          const business = listing.item
+                          if (business.premium_activo) {
+                            void recordViewMore("comercios", String(business.id), business.nombre)
+                            router.push(`/comercios/${business.id}`)
+                            return
+                          }
 
-                  <div className="p-4">
-                    {!imageSrc ? (
-                      <h3 className="text-base font-semibold leading-tight text-slate-900 sm:text-lg">
-                        {business.nombre}
-                      </h3>
-                    ) : null}
-                    {business.direccion && (
-                      <a
-                        href={
-                          getGoogleMapsSearchUrl(
-                            business.nombre,
-                            business.direccion,
-                            business.localidad
-                          ) || "#"
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(event) => event.stopPropagation()}
-                        className="mt-2 block line-clamp-2 text-xs text-sky-700 transition hover:text-sky-800"
-                      >
-                        {business.direccion}
-                      </a>
-                    )}
-
-                    {business.premium_activo ? (
-                      <Link
-                        href={`/comercios/${business.id}`}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          void recordViewMore(
-                            "comercios",
-                            String(business.id),
-                            business.nombre
-                          )
-                        }}
-                        className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-violet-700 transition hover:text-violet-800"
-                      >
-                        Ver perfil completo
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation()
                           handleViewMoreClick(
                             "comercios",
                             String(business.id),
                             business.nombre,
                             () => setSelectedComercio(business)
                           )
-                        }}
-                        className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-blue-500 transition hover:text-blue-600"
-                      >
-                        Ver mas
-                        <ArrowRight className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-          {featuredBusinessPageCount > 1 ? (
-            <div className="mt-8 text-center text-sm text-slate-500">
-              La home muestra una tanda de 8 destacados y la rota automáticamente cada 2 días.
-            </div>
-          ) : null}
-        </div>
-        <div className="mx-auto mt-8 max-w-7xl px-4 pt-2 sm:px-6 lg:px-8">
+                          return
+                        }
 
-          {servicios.length === 0 ? (
+                        const servicio = listing.item
+                        if (servicio.premium_activo) {
+                          void recordViewMore("servicios", String(servicio.id), servicio.nombre)
+                          router.push(`/servicios/${servicio.id}`)
+                          return
+                        }
+
+                        handleViewMoreClick(
+                          "servicios",
+                          String(servicio.id),
+                          servicio.nombre,
+                          () => setSelectedServicio(servicio)
+                        )
+                      })
+                    }
+                  />
+                ))}
+              </div>
+              {directoryPageCount > 1 ? (
+                <div className="mt-7 text-center text-sm text-slate-500">
+                  La home muestra una tanda de 8 logos y la rota automáticamente cada 2 días.
+                </div>
+              ) : null}
+            </>
+          )}
+        </div>
+      </section>
+
+      <section id="propuestas-turisticas" className="order-6 py-10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center">
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">
+              Propuestas Turísticas
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
+              Actividades, paseos y experiencias para disfrutar Aiguá, Mariscala y las sierras.
+            </p>
+          </div>
+
+          {tourismProposals.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
-              Todavía no hay servicios cargados.
+              Todavía no hay propuestas turísticas cargadas.
             </div>
           ) : (
             <>
-            <div className="grid grid-cols-2 justify-items-center gap-4 xl:grid-cols-4">
-              {visibleServicios.map((servicio) => (
-                <div
-                        key={servicio.id}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => {
-                          if (servicio.premium_activo) {
-                            void recordViewMore("servicios", String(servicio.id), servicio.nombre)
-                            router.push(`/servicios/${servicio.id}`)
-                            return
-                          }
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+                {visibleTourismProposals.map((servicio) => (
+                  <div
+                    key={servicio.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      if (servicio.premium_activo) {
+                        void recordViewMore("servicios", String(servicio.id), servicio.nombre)
+                        router.push(`/servicios/${servicio.id}`)
+                        return
+                      }
 
-                          handleViewMoreClick(
-                            "servicios",
-                            String(servicio.id),
-                            servicio.nombre,
-                            () => setSelectedServicio(servicio)
-                          )
-                        }}
-                        onKeyDown={(event) =>
-                          handleCardKeyDown(event, () => {
-                            if (servicio.premium_activo) {
-                              void recordViewMore("servicios", String(servicio.id), servicio.nombre)
-                              router.push(`/servicios/${servicio.id}`)
-                              return
-                            }
-
-                            handleViewMoreClick(
-                              "servicios",
-                              String(servicio.id),
-                              servicio.nombre,
-                              () => setSelectedServicio(servicio)
-                            )
-                          })
+                      handleViewMoreClick(
+                        "servicios",
+                        String(servicio.id),
+                        servicio.nombre,
+                        () => setSelectedServicio(servicio)
+                      )
+                    }}
+                    onKeyDown={(event) =>
+                      handleCardKeyDown(event, () => {
+                        if (servicio.premium_activo) {
+                          void recordViewMore("servicios", String(servicio.id), servicio.nombre)
+                          router.push(`/servicios/${servicio.id}`)
+                          return
                         }
-                        className={`w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[24px] border bg-white/90 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${servicio.premium_activo ? "border-violet-200 hover:shadow-[0_28px_60px_-30px_rgba(139,92,246,0.35)]" : "border-white/80 hover:shadow-[0_28px_60px_-30px_rgba(245,158,11,0.35)]"}`}
-                      >
-                        {servicio.imagen && (
-                          <div className="relative h-32 w-full overflow-hidden bg-slate-100 sm:h-40">
-                            <OptimizedImage
-                              src={servicio.imagen}
-                              alt={servicio.nombre}
-                              sizes="(max-width: 768px) 50vw, (max-width: 1280px) 50vw, 25vw"
-                              className="object-cover"
-                            />
-                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/82 via-slate-950/48 to-transparent px-3 pb-3 pt-9">
-                              <span className="block text-balance text-sm font-semibold leading-tight text-white drop-shadow-sm sm:text-base">
-                                {servicio.nombre}
-                              </span>
-                            </div>
-                          </div>
-                        )}
 
-                        <div className="p-4">
-                          {servicio.categoria && (
-                            <div className="mb-3 inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                              {servicio.categoria}
-                            </div>
-                          )}
-
-                              {!servicio.imagen ? (
-                                <h3 className="text-base font-semibold leading-tight text-slate-900 sm:text-lg">
-                                  {servicio.nombre}
-                                </h3>
-                              ) : null}
-
-                              <div className="mt-3 space-y-2 text-xs text-slate-600 sm:text-sm">
-                            {servicio.responsable && (
-                              <div className="flex items-center gap-2">
-                                <UserRound className="h-4 w-4" />
-                                <span>{servicio.responsable}</span>
-                              </div>
-                            )}
-
-                            {servicio.contacto && (
-                              <div className="flex items-center gap-2">
-                                <Phone className="h-4 w-4" />
-                                <span>{servicio.contacto}</span>
-                              </div>
-                            )}
-
-                            {servicio.direccion && (
-                              <a
-                                href={
-                                  getGoogleMapsSearchUrl(
-                                    servicio.nombre,
-                                    servicio.direccion,
-                                    servicio.localidad
-                                  ) || "#"
-                                }
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(event) => event.stopPropagation()}
-                                className="flex items-center gap-2 text-sky-700 transition hover:text-sky-800"
-                              >
-                                <MapPin className="h-4 w-4" />
-                                <span>{servicio.direccion}</span>
-                              </a>
-                            )}
-                          </div>
-
-                          {servicio.premium_activo ? (
-                            <Link
-                              href={`/servicios/${servicio.id}`}
-                              onClick={(event) => {
-                                event.stopPropagation()
-                                void recordViewMore(
-                                  "servicios",
-                                  String(servicio.id),
-                                  servicio.nombre
-                                )
-                              }}
-                                  className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-violet-700 transition hover:text-violet-800"
-                            >
-                              Ver perfil completo
-                              <ArrowRight className="h-4 w-4" />
-                            </Link>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation()
-                                handleViewMoreClick(
-                                  "servicios",
-                                  String(servicio.id),
-                                  servicio.nombre,
-                                  () => setSelectedServicio(servicio)
-                                )
-                              }}
-                                  className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-blue-500 transition hover:text-blue-600"
-                            >
-                              Ver más
-                              <ArrowRight className="h-4 w-4" />
-                            </button>
-                          )}
+                        handleViewMoreClick(
+                          "servicios",
+                          String(servicio.id),
+                          servicio.nombre,
+                          () => setSelectedServicio(servicio)
+                        )
+                      })
+                    }
+                    className="group cursor-pointer overflow-hidden rounded-[20px] border border-white/80 bg-white/92 shadow-[0_16px_38px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  >
+                    <div className="relative aspect-[4/3] bg-slate-100">
+                      {servicio.imagen ? (
+                        <OptimizedImage
+                          src={servicio.imagen}
+                          alt={servicio.nombre}
+                          sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                          className="object-cover transition duration-200 group-hover:scale-[1.03]"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-slate-400">
+                          <MapPin className="h-9 w-9" />
                         </div>
-                      </div>
-              ))}
-            </div>
-            {servicePageCount > 1 ? (
-              <div className="mt-8 text-center text-sm text-slate-500">
-                La home muestra una tanda completa de 8 servicios y la rota automáticamente cada 2 días.
+                      )}
+                    </div>
+                    <div className="p-4">
+                      {servicio.categoria ? (
+                        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                          {servicio.categoria}
+                        </div>
+                      ) : null}
+                      <h3 className="line-clamp-2 text-base font-semibold leading-tight text-slate-900 sm:text-lg">
+                        {servicio.nombre}
+                      </h3>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ) : null}
+              {tourismProposalPageCount > 1 ? (
+                <div className="mt-7 text-center text-sm text-slate-500">
+                  La home muestra una tanda de 8 propuestas y la rota automáticamente cada 2 días.
+                </div>
+              ) : null}
             </>
           )}
         </div>
@@ -2331,66 +2372,20 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                 Todavía no hay instituciones cargadas.
             </div>
           ) : (
-            <div className="grid grid-cols-2 justify-items-center gap-4 xl:grid-cols-4">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 lg:grid-cols-5">
               {visibleInstituciones.map((institucion) => (
-                <div
+                <LogoGridCard
                   key={institucion.id}
-                  role="button"
-                  tabIndex={0}
+                  image={institucion.foto}
+                  name={institucion.nombre}
+                  fallback={<Building2 className="h-8 w-8 text-slate-400 sm:h-10 sm:w-10" />}
                   onClick={() => handleOpenInstitucion(institucion)}
                   onKeyDown={(event) =>
                     handleCardKeyDown(event, () =>
                       handleOpenInstitucion(institucion)
                     )
                   }
-                  className="w-full max-w-[18rem] cursor-pointer overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:shadow-[0_28px_60px_-30px_rgba(71,85,105,0.2)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-800/35"
-                >
-                  <div className="bg-sky-800 p-5">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-sky-800 shadow-sm">
-                      <Building2 className="h-7 w-7" />
-                    </div>
-                  </div>
-
-                  <div className="flex min-h-[170px] flex-col">
-                    <div className="flex h-full flex-1 flex-col justify-between p-5">
-                      <div>
-                        <h3 className="text-xl font-semibold leading-tight text-slate-950 sm:text-2xl">
-                          {institucion.nombre}
-                        </h3>
-
-                        {institucion.direccion ? (
-                          <a
-                            href={
-                              getGoogleMapsSearchUrl(
-                                institucion.nombre,
-                                institucion.direccion,
-                                institucion.localidad
-                              ) || "#"
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(event) => event.stopPropagation()}
-                            className="mt-3 block line-clamp-2 text-sm text-sky-700 transition hover:text-sky-800"
-                          >
-                            {institucion.direccion}
-                          </a>
-                        ) : null}
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          handleOpenInstitucion(institucion)
-                        }}
-                        className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"
-                      >
-                        Ver más
-                        <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                />
               ))}
             </div>
           )}
