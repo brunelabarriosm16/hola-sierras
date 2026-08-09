@@ -500,6 +500,15 @@ function isTourismProposal(servicio: Servicio) {
     .replace(/[\u0300-\u036f]/g, "")
 
   const tourismTerms = [
+    "alojamiento",
+    "alojamientos",
+    "cabana",
+    "cabanas",
+    "camping",
+    "hospedaje",
+    "hostel",
+    "hotel",
+    "posada",
     "actividad",
     "actividades",
     "astroturismo",
@@ -532,6 +541,27 @@ function isTourismProposal(servicio: Servicio) {
   return tourismTerms.some((term) => searchable.includes(term))
 }
 
+type TourismFilter = "todos" | "alojamientos" | "actividades"
+
+function isAccommodationProposal(servicio: Servicio) {
+  const searchable = [servicio.nombre, servicio.categoria, servicio.descripcion]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+
+  return [
+    "alojamiento",
+    "cabana",
+    "camping",
+    "hospedaje",
+    "hostel",
+    "hotel",
+    "posada",
+  ].some((term) => searchable.includes(term))
+}
+
 export function HomePage({ initialData }: { initialData: HomePageData }) {
   const router = useRouter()
   const featuredNotices = initialData.featuredNotices
@@ -546,6 +576,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   const [selectedEvento, setSelectedEvento] = useState<Evento | null>(null)
   const [selectedCurso, setSelectedCurso] = useState<Curso | null>(null)
   const [selectedInstitucion, setSelectedInstitucion] = useState<Institucion | null>(null)
+  const [tourismFilter, setTourismFilter] = useState<TourismFilter>("todos")
   const [contactLeadForm, setContactLeadForm] = useState<ContactLeadForm>(
     initialContactLeadForm
   )
@@ -606,17 +637,25 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
     () => orderedServicios.filter((servicio) => isTourismProposal(servicio)),
     [orderedServicios]
   )
+  const filteredTourismProposals = useMemo(
+    () => tourismProposals.filter((servicio) => {
+      if (tourismFilter === "todos") return true
+      const isAccommodation = isAccommodationProposal(servicio)
+      return tourismFilter === "alojamientos" ? isAccommodation : !isAccommodation
+    }),
+    [tourismFilter, tourismProposals]
+  )
   const tourismProposalPageCount = Math.max(
     1,
-    Math.ceil(tourismProposals.length / ITEMS_PER_ROTATION)
+    Math.ceil(filteredTourismProposals.length / ITEMS_PER_ROTATION)
   )
   const scheduledTourismProposalPage = useMemo(
     () => getScheduledRotationPage(tourismProposalPageCount),
     [tourismProposalPageCount]
   )
   const visibleTourismProposals = useMemo(
-    () => sliceRotatingItemsCircular(tourismProposals, scheduledTourismProposalPage),
-    [tourismProposals, scheduledTourismProposalPage]
+    () => sliceRotatingItemsCircular(filteredTourismProposals, scheduledTourismProposalPage),
+    [filteredTourismProposals, scheduledTourismProposalPage]
   )
   const visibleEventos = useMemo(() => eventos.slice(0, 8), [eventos])
   const visibleCursos = useMemo(() => cursos.slice(0, 8), [cursos])
@@ -1813,13 +1852,34 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
               Propuestas Turísticas
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
-              Actividades, paseos y experiencias para disfrutar Aiguá, Mariscala y las sierras.
+              Alojamientos y actividades para hacer en Aiguá, Mariscala y las sierras.
             </p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2" aria-label="Filtrar propuestas turísticas">
+              {([
+                ["todos", "Todos"],
+                ["alojamientos", "Alojamientos"],
+                ["actividades", "Actividades para hacer"],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setTourismFilter(value)}
+                  aria-pressed={tourismFilter === value}
+                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                    tourismFilter === value
+                      ? "border-emerald-800 bg-emerald-800 text-white shadow-sm"
+                      : "border-emerald-800/15 bg-white/75 text-emerald-900 hover:bg-white"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {tourismProposals.length === 0 ? (
+          {filteredTourismProposals.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
-              Todavía no hay propuestas turísticas cargadas.
+              Todavía no hay propuestas cargadas en esta categoría.
             </div>
           ) : (
             <>

@@ -95,6 +95,7 @@ const initialForm: ServicioForm = {
 const categoriasServicio = [
   "Profesionales",
   "Alojamientos",
+  "Actividades para hacer",
   "Oficios",
   "Servicios",
 ]
