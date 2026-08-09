@@ -262,7 +262,7 @@ export function EventosPageClient({ initialEventos }: { initialEventos: Evento[]
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          {["Todos", "Evento", "Promocion", "Sorteo", "Beneficio", "Consulta", "Aviso"].map((item) => (
+          {["Todos", "Evento", "Oportunidad", "Consulta", "Promocion", "Sorteo", "Beneficio", "Aviso"].map((item) => (
             <button
               key={item}
               type="button"

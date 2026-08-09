@@ -17,6 +17,7 @@ import { ExternalLinksButtons } from "./ExternalLinksButtons"
 import { OptimizedImage } from "./OptimizedImage"
 import { PublicHeader } from "./PublicHeader"
 import { ShareButton } from "./ShareButton"
+import { HomeSearch } from "./HomeSearch"
 import { SorteoParticipationForm } from "./SorteoParticipationForm"
 import { formatEventDateRange } from "../lib/eventDates"
 import { parseEventDescription } from "../lib/eventSubmissionMeta"
@@ -405,6 +406,7 @@ const SOCIAL_LINKS = [
 
 const ITEMS_PER_ROTATION = 8
 const FEATURED_ROTATION_DAYS = 2
+const SHOW_COURSES_AND_INSTITUTIONS_ON_HOME = false
 
 function isFeaturedListing(item: {
   destacado?: boolean | null
@@ -1567,14 +1569,15 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
 
           <div className="mx-auto max-w-5xl">
             <h1 className="text-4xl font-bold leading-[1.05] tracking-normal text-slate-950 sm:text-5xl lg:text-7xl">
-              CARTELERA DIGITAL
-              <span className="block text-emerald-900">de las sierras</span>
+              Descubrí las Sierras
             </h1>
           </div>
 
           <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-slate-700 sm:text-xl">
-            Todo lo que pasa en Aiguá, Mariscala y la región
+            Naturaleza, sabores, paseos y experiencias para disfrutar Aiguá, Mariscala y toda la región.
           </p>
+
+          <HomeSearch />
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
@@ -1909,7 +1912,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
               Próximos eventos
             </h2>
             <p className="mt-4 text-xl text-slate-500">
-              Eventos, promos y sorteos activos
+              Eventos, propuestas, promociones y más
             </p>
             <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
@@ -1922,12 +1925,16 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
+          <div
+            className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-5 [scrollbar-color:rgba(6,95,70,0.35)_transparent] [scrollbar-width:thin] md:gap-6"
+            aria-label="Eventos destacados; deslizá hacia el costado para ver más"
+          >
             {visibleEventos.map((event) => (
               <div
                 key={event.id}
                 role="button"
                 tabIndex={0}
+                style={{ flex: "0 0 clamp(17rem, 23.5%, 23.5%)", minWidth: 0 }}
                 onClick={() =>
                   handleViewMoreClick(
                     "eventos",
@@ -1946,7 +1953,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                     )
                   )
                 }
-                className="cursor-pointer overflow-hidden rounded-[20px] border border-emerald-800/18 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45),0_0_0_1px_rgba(72,110,82,0.05)] transition hover:-translate-y-1.5 hover:border-emerald-800/24 hover:shadow-[0_28px_60px_-30px_rgba(74,110,82,0.18),0_0_0_1px_rgba(72,110,82,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/35 md:rounded-[28px]"
+                className="h-full snap-start cursor-pointer overflow-hidden rounded-[20px] border border-emerald-800/18 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45),0_0_0_1px_rgba(72,110,82,0.05)] transition hover:-translate-y-1.5 hover:border-emerald-800/24 hover:shadow-[0_28px_60px_-30px_rgba(74,110,82,0.18),0_0_0_1px_rgba(72,110,82,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/35 md:rounded-[28px]"
               >
                 {event.imagen && (
                   <div className="relative h-32 w-full bg-slate-50 sm:h-64">
@@ -1996,6 +2003,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         </div>
       </section>
 
+      {SHOW_COURSES_AND_INSTITUTIONS_ON_HOME ? <>
       <section id="cursos" className="order-3 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
@@ -2151,6 +2159,8 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
           )}
         </div>
       </section>
+
+      </> : null}
 
       </div>
 

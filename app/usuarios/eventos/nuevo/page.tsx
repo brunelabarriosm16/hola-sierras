@@ -41,7 +41,7 @@ type EventForm = {
   relatedEntityId: string
 }
 
-const categoriasEvento = ["Evento", "Promocion", "Sorteo", "Beneficio", "Consulta", "Aviso"]
+const categoriasEvento = ["Evento", "Oportunidad", "Consulta", "Promocion", "Sorteo", "Beneficio", "Aviso"]
 
 const isMissingRelatedEntityColumn = (message: string) =>
   message.includes("related_entity_id") || message.includes("related_entity_type")
