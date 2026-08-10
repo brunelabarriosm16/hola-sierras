@@ -22,7 +22,7 @@ export function HomeSearch() {
 
   useEffect(() => {
     const value = query.trim()
-    if (value.length < 2) {
+    if (value.length < 1) {
       setSuggestions([])
       setLoadingSuggestions(false)
       return
@@ -63,7 +63,7 @@ export function HomeSearch() {
             autoComplete="off"
             className="h-14 w-full rounded-2xl bg-white pl-12 pr-4 text-base text-slate-900 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-700/25 sm:h-16 sm:text-lg"
           />
-          {focused && query.trim().length >= 2 ? (
+          {focused && query.trim().length >= 1 ? (
             <div className="absolute inset-x-0 top-[calc(100%+10px)] z-30 overflow-hidden rounded-2xl border border-slate-200 bg-white py-2 shadow-xl">
               {loadingSuggestions ? <div className="px-4 py-3 text-sm text-slate-500">Buscando coincidencias…</div> : suggestions.length ? suggestions.map((suggestion) => (
                 <button key={suggestion.id} type="button" onMouseDown={() => router.push(suggestion.href)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-emerald-50">

@@ -6,7 +6,7 @@ type Suggestion = { id: string; name: string; meta: string; href: string }
 
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get("q")?.trim() || ""
-  if (query.length < 2) return NextResponse.json([])
+  if (query.length < 1) return NextResponse.json([])
 
   const [{ data: comercios }, { data: servicios }, { data: eventos }, { data: cursos }, { data: instituciones }] = await Promise.all([
     supabaseServer.from("comercios").select("id,nombre,categoria,descripcion,localidad").or("estado.is.null,estado.eq.activo").order("id", { ascending: false }),
