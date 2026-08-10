@@ -25,7 +25,7 @@ export function OptimizedImage({
       sizes={sizes}
       priority={priority}
       loading={priority ? "eager" : "lazy"}
-      unoptimized={src.startsWith("data:")}
+      unoptimized={src.startsWith("data:") || src.startsWith("/api/media/")}
       className={className}
     />
   )
