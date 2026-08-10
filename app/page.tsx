@@ -77,7 +77,10 @@ const getHomeSupabaseData = unstable_cache(
     return {
       featuredNotices: featuredNotices || [],
       featuredBusinesses: featuredBusinesses || [],
-      eventos: (eventosData || []).slice(0, 8),
+      eventos: (eventosData || []).slice(0, 8).map((evento) => ({
+        ...evento,
+        imagen: evento.imagen ? `/api/media/evento/${evento.id}` : null,
+      })),
       cursos: (cursos || []).slice(0, 8),
       servicios: servicios || [],
       instituciones: instituciones || [],
@@ -88,7 +91,7 @@ const getHomeSupabaseData = unstable_cache(
         : defaultSobreVarela,
     } satisfies Omit<HomePageData, "weather">
   },
-  ["home-supabase-data-v3"],
+  ["home-supabase-data-v4-media-proxy"],
   { revalidate: 3600 }
 )
 

@@ -17,9 +17,12 @@ const getEventos = unstable_cache(
       .or(buildActiveEventsFilter(today))
       .order("fecha", { ascending: true })
 
-    return data || []
+    return (data || []).map((evento) => ({
+      ...evento,
+      imagen: evento.imagen ? `/api/media/evento/${evento.id}` : "",
+    }))
   },
-  ["public-eventos"],
+  ["public-eventos-media-proxy-v2"],
   { revalidate: 3600 }
 )
 
