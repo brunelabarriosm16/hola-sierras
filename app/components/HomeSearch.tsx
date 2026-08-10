@@ -13,6 +13,9 @@ const QUICK_LINKS = [
 
 type Suggestion = { id: string; name: string; meta: string; href: string }
 
+const normalize = (value: string) =>
+  value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es").trim()
+
 export function HomeSearch() {
   const router = useRouter()
   const [query, setQuery] = useState("")
@@ -45,6 +48,12 @@ export function HomeSearch() {
   const submit = (event?: FormEvent) => {
     event?.preventDefault()
     const value = query.trim()
+    const exactMatch = suggestions.find((suggestion) => normalize(suggestion.name) === normalize(value))
+    const directMatch = exactMatch || (suggestions.length === 1 ? suggestions[0] : null)
+    if (directMatch) {
+      router.push(directMatch.href)
+      return
+    }
     router.push(value ? `/buscar?q=${encodeURIComponent(value)}` : "/buscar")
   }
 
