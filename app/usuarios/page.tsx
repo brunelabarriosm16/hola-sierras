@@ -17,7 +17,7 @@ type ServicioForm = ExternalLinksForm & { nombre: string; categoria: string; des
 type CursoForm = ExternalLinksForm & { nombre: string; descripcion: string; responsable: string; contacto: string; localidad: string; edades: string[]; usaWhatsapp: boolean }
 type InstitucionForm = ExternalLinksForm & { nombre: string; descripcion: string; direccion: string; localidad: string; telefono: string; usaWhatsapp: boolean }
 
-const serviceCategories = ["Profesionales", "Alojamientos", "Actividades para hacer", "Oficios", "Servicios"]
+const serviceCategories = ["Profesionales", "Alojamientos", "Actividades para hacer", "Paseos", "Naturaleza", "Experiencias", "Restaurantes", "Cafeterías", "Comida para llevar", "Hoteles", "Posadas", "Cabañas", "Campings", "Oficios", "Servicios"]
 const courseAgeOptions = [
   { value: "niños", label: "Niños" },
   { value: "adolescentes", label: "Adolescentes" },

@@ -32,7 +32,7 @@ type ProfileForm = {
   image: string
 }
 
-const serviceCategories = ["Profesionales", "Alojamientos", "Actividades para hacer", "Oficios", "Servicios"]
+const serviceCategories = ["Profesionales", "Alojamientos", "Actividades para hacer", "Paseos", "Naturaleza", "Experiencias", "Restaurantes", "Cafeterías", "Comida para llevar", "Hoteles", "Posadas", "Cabañas", "Campings", "Oficios", "Servicios"]
 
 const initialForm: ProfileForm = {
   nombre: "",

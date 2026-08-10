@@ -25,6 +25,7 @@ import {
 type Comercio = {
   id: number
   nombre: string
+  categoria?: string | null
   descripcion: string | null
   premium_detalle?: string | null
   premium_galeria?: string[] | null
@@ -51,6 +52,7 @@ type Comercio = {
 
 type ComercioForm = {
   nombre: string
+  categoria: string
   direccion: string
   localidad: string
   telefono: string
@@ -70,6 +72,7 @@ type ComercioForm = {
 
 const initialForm: ComercioForm = {
   nombre: "",
+  categoria: "Comercio",
   direccion: "",
   localidad: "",
   telefono: "",
@@ -86,6 +89,17 @@ const initialForm: ComercioForm = {
   imagen_url: "",
   usa_whatsapp: true,
 }
+
+const categoriasComercio = [
+  "Comercio",
+  "Restaurantes",
+  "Cafeterías",
+  "Comida para llevar",
+  "Hoteles",
+  "Posadas",
+  "Cabañas",
+  "Campings",
+]
 
 export default function AdminComerciosPage() {
   const [comercios, setComercios] = useState<Comercio[]>([])
@@ -159,6 +173,7 @@ export default function AdminComerciosPage() {
     setEditingComercio(comercio)
     setFormData({
       nombre: comercio.nombre || "",
+      categoria: comercio.categoria || "Comercio",
       direccion: comercio.direccion || "",
       localidad: normalizeLocalidad(comercio.localidad),
       telefono: comercio.telefono || "",
@@ -306,6 +321,7 @@ export default function AdminComerciosPage() {
 
     const payload = {
       nombre: formData.nombre,
+      categoria: formData.categoria,
       direccion: formData.direccion || null,
       localidad: formData.localidad || null,
       telefono: formData.telefono || null,
@@ -500,6 +516,23 @@ export default function AdminComerciosPage() {
                       : "Completa un teléfono si quieres habilitar WhatsApp"}
                   </span>
                 </label>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-900">
+                  Categoría
+                </label>
+                <select
+                  value={formData.categoria}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, categoria: e.target.value }))
+                  }
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500"
+                >
+                  {categoriasComercio.map((categoria) => (
+                    <option key={categoria} value={categoria}>{categoria}</option>
+                  ))}
+                </select>
+              </div>
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-900">
