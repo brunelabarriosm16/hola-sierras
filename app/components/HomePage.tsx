@@ -1986,7 +1986,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
           </div>
 
           <div
-            className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-5 [scrollbar-color:rgba(6,95,70,0.35)_transparent] [scrollbar-width:thin] md:gap-6"
+            className="flex items-stretch snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-5 [scrollbar-color:rgba(6,95,70,0.35)_transparent] [scrollbar-width:thin] md:gap-6"
             aria-label="Eventos destacados; deslizá hacia el costado para ver más"
           >
             {visibleEventos.map((event) => (
@@ -2013,7 +2013,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                     )
                   )
                 }
-                className="h-full snap-start cursor-pointer overflow-hidden rounded-[20px] border border-emerald-800/18 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45),0_0_0_1px_rgba(72,110,82,0.05)] transition hover:-translate-y-1.5 hover:border-emerald-800/24 hover:shadow-[0_28px_60px_-30px_rgba(74,110,82,0.18),0_0_0_1px_rgba(72,110,82,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/35 md:rounded-[28px]"
+                className="flex snap-start cursor-pointer flex-col self-stretch overflow-hidden rounded-[20px] border border-emerald-800/18 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45),0_0_0_1px_rgba(72,110,82,0.05)] transition hover:-translate-y-1.5 hover:border-emerald-800/24 hover:shadow-[0_28px_60px_-30px_rgba(74,110,82,0.18),0_0_0_1px_rgba(72,110,82,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/35 md:rounded-[28px]"
               >
                 {event.imagen && (
                   <div className="relative h-32 w-full bg-slate-50 sm:h-64">
@@ -2026,7 +2026,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                   </div>
                 )}
 
-                <div className="p-3 md:p-5">
+                <div className="flex flex-1 flex-col p-3 md:p-5">
                   <div className="mb-2 flex items-center gap-2 text-xs text-blue-500 md:mb-4 md:text-lg">
                     <CalendarDays className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
                     <span>{formatEventDateRange(event.fecha, event.fecha_fin, event.fecha_solo_mes ?? false)}</span>

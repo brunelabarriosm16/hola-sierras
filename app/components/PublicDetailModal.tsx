@@ -72,7 +72,11 @@ export function PublicDetailModal({
         </div>
       ) : null}
 
-      <div className="relative max-h-[92vh] w-full max-w-6xl overflow-y-auto rounded-[28px] border border-white/70 bg-white shadow-[0_30px_120px_-34px_rgba(15,23,42,0.55)] lg:overflow-hidden">
+      <div
+        className={`relative max-h-[92vh] w-full max-w-6xl rounded-[28px] border border-white/70 bg-white shadow-[0_30px_120px_-34px_rgba(15,23,42,0.55)] [scrollbar-gutter:stable] ${
+          isImageTop ? "overflow-y-scroll" : "overflow-y-auto lg:overflow-hidden"
+        }`}
+      >
         <button
           type="button"
           onClick={onClose}
@@ -110,7 +114,7 @@ export function PublicDetailModal({
             )}
           </div>
 
-          <div className={isImageTop ? "flex flex-col bg-white" : "flex flex-col bg-white lg:max-h-[92vh] lg:overflow-y-auto"}>
+          <div className={isImageTop ? "flex flex-col bg-white" : "flex flex-col bg-white lg:max-h-[92vh] lg:overflow-y-scroll lg:[scrollbar-gutter:stable]"}>
             <div className="border-b border-slate-100 px-5 pb-5 pt-7 md:px-8">
               {badge ? (
                 <div className="mb-4 flex items-start gap-3 pr-12">

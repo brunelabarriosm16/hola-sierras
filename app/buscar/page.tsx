@@ -1,12 +1,12 @@
-import { unstable_cache } from "next/cache"
 import { supabaseServer } from "../lib/supabaseServer"
 import { classifyListing, type SearchItem } from "../lib/search"
 import { SearchResultsClient } from "../components/public/SearchResultsClient"
 import { Suspense } from "react"
 
-export const revalidate = 900
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
-const getSearchItems = unstable_cache(async () => {
+async function getSearchItems() {
   const [{ data: comercios }, { data: servicios }, { data: eventos }, { data: cursos }, { data: instituciones }] = await Promise.all([
     supabaseServer.from("comercios").select("id,nombre,categoria,descripcion,direccion,localidad,imagen,imagen_url").or("estado.is.null,estado.eq.activo").order("id", { ascending: false }),
     supabaseServer.from("servicios").select("id,nombre,categoria,descripcion,direccion,localidad,imagen").or("estado.is.null,estado.eq.activo").order("id", { ascending: false }),
@@ -28,7 +28,7 @@ const getSearchItems = unstable_cache(async () => {
   for (const item of cursos || []) items.push({ id: `curso-${item.id}`, name: item.nombre, category: "que-hacer", categoryLabel: "Cursos y clases", location: item.localidad || "Alrededores", description: item.descripcion || "", image: item.imagen || null, href: `/cursos/${item.id}`, tags: ["curso", "clase", item.responsable || ""], date: null, recentOrder: Number(item.id) })
   for (const item of instituciones || []) items.push({ id: `institucion-${item.id}`, name: item.nombre, category: "comercios-servicios", categoryLabel: "Institución", location: item.localidad || "Alrededores", description: item.descripcion || item.direccion || "", image: item.foto || null, href: `/instituciones/${item.id}`, tags: ["institucion", "organizacion"], date: null, recentOrder: Number(item.id) })
   return items
-}, ["search-index-v1"], { revalidate: 900 })
+}
 
 export default async function BuscarPage() {
   return <Suspense fallback={<div className="min-h-screen bg-[#eef4ef]" />}><SearchResultsClient items={await getSearchItems()} /></Suspense>
