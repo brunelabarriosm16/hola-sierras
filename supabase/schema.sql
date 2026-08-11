@@ -344,9 +344,24 @@ create table if not exists public.avisos_destacados (
   propuesta_id bigint not null,
   activo boolean not null default true,
   espera_segundos integer not null default 20 check (espera_segundos >= 0),
+  apariciones bigint not null default 0,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
+
+create or replace function public.registrar_aparicion_aviso_destacado(aviso_id bigint)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.avisos_destacados
+  set apariciones = coalesce(apariciones, 0) + 1
+  where id = aviso_id and activo = true;
+$$;
+
+revoke all on function public.registrar_aparicion_aviso_destacado(bigint) from public;
+grant execute on function public.registrar_aparicion_aviso_destacado(bigint) to anon, authenticated;
 
 create table if not exists public.share_events (
   id bigint generated always as identity primary key,

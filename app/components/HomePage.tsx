@@ -703,6 +703,9 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
 
     const timeoutId = window.setTimeout(() => {
       setWelcomeHighlight(nextHighlight)
+      void supabase.rpc("registrar_aparicion_aviso_destacado", {
+        aviso_id: nextHighlight.id,
+      })
     }, Math.max(0, nextHighlight.waitSeconds) * 1000)
 
     return () => window.clearTimeout(timeoutId)

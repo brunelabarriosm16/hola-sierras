@@ -31,6 +31,7 @@ type Highlight = {
   propuesta_id: number
   activo: boolean
   espera_segundos: number
+  apariciones: number
   created_at?: string | null
 }
 
@@ -577,6 +578,7 @@ export default function AdminDestacadosPage() {
                   <th className="px-5 py-3">Propuesta</th>
                   <th className="px-5 py-3">Estado</th>
                   <th className="px-5 py-3">Espera</th>
+                  <th className="px-5 py-3">Apariciones</th>
                   <th className="px-5 py-3 text-right">Acciones</th>
                 </tr>
               </thead>
@@ -620,6 +622,11 @@ export default function AdminDestacadosPage() {
                         <span className="inline-flex items-center gap-2 text-slate-600">
                           <Clock className="h-4 w-4" />
                           {highlight.espera_segundos || 0}s
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="inline-flex min-w-16 items-center justify-center rounded-full bg-sky-50 px-3 py-1 text-sm font-semibold tabular-nums text-sky-700">
+                          {Number(highlight.apariciones || 0).toLocaleString("es-UY")}
                         </span>
                       </td>
                       <td className="px-5 py-4">
