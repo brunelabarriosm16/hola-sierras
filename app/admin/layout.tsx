@@ -16,6 +16,7 @@ import {
   LogOut,
   Megaphone,
   Mail,
+  MapPinned,
   Menu,
   Radio,
   Search,
@@ -36,6 +37,7 @@ const menuItems = [
   { href: "/admin", icon: LayoutDashboard, label: "Inicio", roles: ["superadmin", "admin"] },
   { href: "/admin/comercios", icon: Store, label: "Comercios", roles: ["superadmin", "admin"] },
   { href: "/admin/eventos", icon: Calendar, label: "Eventos", roles: ["superadmin", "admin"] },
+  { href: "/admin/turismo", icon: MapPinned, label: "Turismo", roles: ["superadmin", "admin"] },
   { href: "/admin/servicios", icon: ShieldAlert, label: "Servicios", roles: ["superadmin", "admin"] },
   { href: "/admin/instituciones", icon: Building2, label: "Instituciones", roles: ["superadmin", "admin"] },
   { href: "/admin/cursos", icon: GraduationCap, label: "Cursos", roles: ["superadmin", "admin"] },
@@ -61,6 +63,7 @@ const menuGroups = [
     items: [
       "/admin/comercios",
       "/admin/eventos",
+      "/admin/turismo",
       "/admin/servicios",
       "/admin/instituciones",
       "/admin/cursos",

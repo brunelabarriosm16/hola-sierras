@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from "react"
+import { usePathname } from "next/navigation"
 import { Eye, EyeOff, MessageCircle, Pencil, Plus, Share2, ShieldAlert, Star, Trash2, X } from "lucide-react"
 import { AdminConfirmModal } from "../../components/AdminConfirmModal"
 import {
@@ -110,7 +111,33 @@ const categoriasServicio = [
   "Servicios",
 ]
 
+const categoriasTurismo = [
+  "Alojamientos",
+  "Actividades para hacer",
+  "Paseos",
+  "Naturaleza",
+  "Experiencias",
+  "Hoteles",
+  "Posadas",
+  "Cabañas",
+  "Campings",
+]
+
+const turismoCategoryKeys = new Set(
+  categoriasTurismo.map((category) =>
+    category.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+  )
+)
+
+function isTourismCategory(category: string) {
+  return turismoCategoryKeys.has(
+    category.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+  )
+}
+
 export default function AdminServiciosPage() {
+  const pathname = usePathname()
+  const isTourismAdmin = pathname.startsWith("/admin/turismo")
   const [servicios, setServicios] = useState<Servicio[]>([])
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingServicio, setEditingServicio] = useState<Servicio | null>(null)
@@ -126,6 +153,9 @@ export default function AdminServiciosPage() {
     const normalizedSearch = search.trim().toLowerCase()
 
     return servicios.filter((servicio) => {
+      const matchesSection = isTourismAdmin
+        ? isTourismCategory(servicio.categoria)
+        : !isTourismCategory(servicio.categoria)
       const matchesStatus =
         statusFilter === "all" || (servicio.estado || "activo") === statusFilter
       const matchesSearch =
@@ -142,9 +172,9 @@ export default function AdminServiciosPage() {
           .map((value) => value || "")
           .some((value) => value.toLowerCase().includes(normalizedSearch))
 
-      return matchesStatus && matchesSearch
+      return matchesSection && matchesStatus && matchesSearch
     })
-  }, [search, servicios, statusFilter])
+  }, [isTourismAdmin, search, servicios, statusFilter])
 
   const cargarServicios = async () => {
     const [{ data, error }, metrics] = await Promise.all([
@@ -173,11 +203,23 @@ export default function AdminServiciosPage() {
   }, [])
 
   const resetForm = () => {
-    setFormData(initialForm)
+    setFormData({
+      ...initialForm,
+      categoria: isTourismAdmin ? categoriasTurismo[0] : initialForm.categoria,
+    })
     setEditingServicio(null)
     setIsFormOpen(false)
     setSaveError("")
     setSubmitMode("publish")
+  }
+
+  const openNewForm = () => {
+    setFormData({
+      ...initialForm,
+      categoria: isTourismAdmin ? categoriasTurismo[0] : initialForm.categoria,
+    })
+    setEditingServicio(null)
+    setIsFormOpen(true)
   }
 
   const handleEdit = (servicio: Servicio) => {
@@ -328,7 +370,7 @@ export default function AdminServiciosPage() {
     const hasContact = formData.contacto.trim().length > 0
 
     if (!isDraft && !editingServicio && !formData.imagen) {
-      setSaveError("Tenes que cargar una foto para crear un servicio.")
+      setSaveError(`Tenes que cargar una foto para crear ${isTourismAdmin ? "una propuesta turística" : "un servicio"}.`)
       setLoading(false)
       return
     }
@@ -423,9 +465,13 @@ export default function AdminServiciosPage() {
 
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h1 className="mb-2 text-3xl font-semibold text-slate-900">Servicios</h1>
+          <h1 className="mb-2 text-3xl font-semibold text-slate-900">
+            {isTourismAdmin ? "Turismo" : "Servicios"}
+          </h1>
           <p className="text-slate-500">
-            Gestiona profesionales, alojamientos y otros servicios
+            {isTourismAdmin
+              ? "Gestiona alojamientos, paseos, naturaleza y experiencias turísticas"
+              : "Gestiona profesionales y otros servicios"}
           </p>
           <p className="mt-1 text-sm text-slate-400">
             Marca como destacado los que quieres usar en la ventana de bienvenida.
@@ -433,11 +479,11 @@ export default function AdminServiciosPage() {
         </div>
 
         <button
-          onClick={() => setIsFormOpen(true)}
+          onClick={openNewForm}
           className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-3 font-medium text-white transition hover:bg-amber-500"
         >
           <Plus className="h-5 w-5" />
-          Agregar Servicio
+          {isTourismAdmin ? "Agregar propuesta" : "Agregar Servicio"}
         </button>
       </div>
 
@@ -452,7 +498,9 @@ export default function AdminServiciosPage() {
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl">
             <div className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
               <h2 className="text-xl font-semibold text-slate-900">
-                {editingServicio ? "Editar Servicio" : "Agregar Servicio"}
+                {editingServicio
+                  ? isTourismAdmin ? "Editar propuesta turística" : "Editar Servicio"
+                  : isTourismAdmin ? "Agregar propuesta turística" : "Agregar Servicio"}
               </h2>
               <button
                 onClick={resetForm}
@@ -489,7 +537,10 @@ export default function AdminServiciosPage() {
                   Categoria *
                 </label>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  {categoriasServicio.map((categoria) => (
+                  {(isTourismAdmin
+                    ? categoriasTurismo
+                    : categoriasServicio.filter((category) => !isTourismCategory(category))
+                  ).map((categoria) => (
                     <label
                       key={categoria}
                       className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition ${
@@ -546,7 +597,9 @@ export default function AdminServiciosPage() {
                     }
                     className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
                   />
-                  <span>Activar perfil premium para este servicio</span>
+                  <span>
+                    Activar perfil premium para {isTourismAdmin ? "esta propuesta" : "este servicio"}
+                  </span>
                 </label>
 
                 <div className="mt-4 grid grid-cols-1 gap-4">
@@ -562,7 +615,7 @@ export default function AdminServiciosPage() {
                           premium_detalle: e.target.value,
                         }))
                       }
-                      disabled={!formData.premium_activo}
+                      disabled={!formData.premium_activo && !isTourismAdmin}
                       className="h-32 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-violet-500 disabled:cursor-not-allowed disabled:bg-slate-100"
                     />
                   </div>
@@ -590,20 +643,22 @@ export default function AdminServiciosPage() {
                 </div>
               </div>
 
-              {formData.premium_activo ? (
+              {formData.premium_activo || isTourismAdmin ? (
                 <div className="space-y-4 rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-600">
-                      Galerías premium
+                      {isTourismAdmin ? "Galería de fotos" : "Galerías premium"}
                     </div>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
-                      Puedes subir imágenes para la galería principal y otra galería extra para destacar más contenido.
+                      {isTourismAdmin
+                        ? "Puedes cargar varias fotos de la propuesta turística de una sola vez."
+                        : "Puedes subir imágenes para la galería principal y otra galería extra para destacar más contenido."}
                     </p>
                   </div>
 
                   <div>
                     <label className="mb-2 block text-sm font-medium text-slate-900">
-                      Subir imágenes a galería premium
+                      {isTourismAdmin ? "Subir varias fotos" : "Subir imágenes a galería premium"}
                     </label>
                     <input
                       type="file"
@@ -1131,7 +1186,7 @@ export default function AdminServiciosPage() {
           </p>
           {servicios.length === 0 ? (
             <button
-              onClick={() => setIsFormOpen(true)}
+              onClick={openNewForm}
               className="rounded-xl bg-amber-600 px-6 py-3 font-medium text-white transition hover:bg-amber-500"
             >
               Agregar Servicio
