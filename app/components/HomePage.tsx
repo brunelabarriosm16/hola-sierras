@@ -611,9 +611,9 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
     [servicios]
   )
   const directoryItems = useMemo<UnifiedDirectoryItem[]>(
-    () =>
-      [
-        ...featuredBusinesses.map((business) => ({
+    () => {
+      const businessItems: UnifiedDirectoryItem[] = featuredBusinesses
+        .map((business) => ({
           key: `comercio-${business.id}`,
           type: "comercio" as const,
           id: business.id,
@@ -621,8 +621,14 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
           image: business.imagen_url || business.imagen || null,
           destacado: isFeaturedListing(business),
           item: business,
-        })),
-        ...orderedServicios.map((servicio) => ({
+        }))
+        .sort((a, b) => {
+          const featuredDiff = Number(b.destacado) - Number(a.destacado)
+          return featuredDiff || b.id - a.id
+        })
+
+      const serviceItems: UnifiedDirectoryItem[] = orderedServicios
+        .map((servicio) => ({
           key: `servicio-${servicio.id}`,
           type: "servicio" as const,
           id: servicio.id,
@@ -630,12 +636,22 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
           image: servicio.imagen || null,
           destacado: isFeaturedListing(servicio),
           item: servicio,
-        })),
-      ].sort((a, b) => {
-        const featuredDiff = Number(b.destacado) - Number(a.destacado)
-        if (featuredDiff !== 0) return featuredDiff
-        return b.id - a.id
-      }),
+        }))
+        .sort((a, b) => {
+          const featuredDiff = Number(b.destacado) - Number(a.destacado)
+          return featuredDiff || b.id - a.id
+        })
+
+      const mixedItems: UnifiedDirectoryItem[] = []
+      const maxLength = Math.max(businessItems.length, serviceItems.length)
+
+      for (let index = 0; index < maxLength; index += 1) {
+        if (businessItems[index]) mixedItems.push(businessItems[index])
+        if (serviceItems[index]) mixedItems.push(serviceItems[index])
+      }
+
+      return mixedItems
+    },
     [featuredBusinesses, orderedServicios]
   )
   const directoryPageCount = Math.max(1, Math.ceil(directoryItems.length / ITEMS_PER_ROTATION))
@@ -1854,7 +1870,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
               </div>
               {directoryPageCount > 1 ? (
                 <div className="mt-7 text-center text-sm text-slate-500">
-                  La home muestra una tanda de 8 logos y la rota automáticamente cada 2 días.
+                  La home muestra una tanda combinada de comercios y servicios, y la rota automáticamente cada 2 días.
                 </div>
               ) : null}
             </>
@@ -2003,7 +2019,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
           </div>
 
           <div
-            className="flex items-stretch snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-5 [scrollbar-color:rgba(6,95,70,0.35)_transparent] [scrollbar-width:thin] md:gap-6"
+            className="flex items-stretch snap-x snap-mandatory gap-5 overflow-x-auto overscroll-x-contain pb-6 [scrollbar-color:rgba(6,95,70,0.35)_transparent] [scrollbar-width:thin] md:gap-7"
             aria-label="Eventos destacados; deslizá hacia el costado para ver más"
           >
             {visibleEventos.map((event) => (
@@ -2011,7 +2027,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                 key={event.id}
                 role="button"
                 tabIndex={0}
-                style={{ flex: "0 0 clamp(17rem, 23.5%, 23.5%)", minWidth: 0 }}
+                style={{ flex: "0 0 clamp(19rem, 31.5%, 31.5%)", minWidth: 0 }}
                 onClick={() =>
                   handleViewMoreClick(
                     "eventos",
@@ -2033,17 +2049,17 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                 className="flex snap-start cursor-pointer flex-col self-stretch overflow-hidden rounded-[20px] border border-emerald-800/18 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45),0_0_0_1px_rgba(72,110,82,0.05)] transition hover:-translate-y-1.5 hover:border-emerald-800/24 hover:shadow-[0_28px_60px_-30px_rgba(74,110,82,0.18),0_0_0_1px_rgba(72,110,82,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/35 md:rounded-[28px]"
               >
                 {event.imagen && (
-                  <div className="relative h-32 w-full bg-slate-50 sm:h-64">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden border-b border-slate-100 bg-[radial-gradient(circle_at_center,#ffffff_0%,#f8fafc_72%,#eef2f7_100%)]">
                     <OptimizedImage
                       src={event.imagen}
                       alt={event.titulo}
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-contain p-3"
+                      sizes="(max-width: 640px) 19rem, (max-width: 1024px) 46vw, 31vw"
+                      className="object-contain p-2 sm:p-3"
                     />
                   </div>
                 )}
 
-                <div className="flex flex-1 flex-col p-3 md:p-5">
+                <div className="flex flex-1 flex-col p-4 md:p-6">
                   <div className="mb-2 flex items-center gap-2 text-xs text-blue-500 md:mb-4 md:text-lg">
                     <CalendarDays className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
                     <span>{formatEventDateRange(event.fecha, event.fecha_fin, event.fecha_solo_mes ?? false)}</span>
