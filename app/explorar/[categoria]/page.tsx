@@ -27,7 +27,7 @@ async function loadItems(category: string): Promise<ExploreItem[]> {
   if (category === "eventos") {
     const today = new Date().toISOString().slice(0, 10)
     const { data } = await supabaseServer.from("eventos").select("id,titulo,descripcion,ubicacion,localidad,imagen,fecha").eq("estado", "activo").or(buildActiveEventsFilter(today)).order("fecha", { ascending: true })
-    return (data || []).map((item) => ({ id: `evento-${item.id}`, name: item.titulo, location: item.localidad || "Toda la región", description: item.descripcion || "", image: item.imagen || null, href: `/eventos/${item.id}`, subtype: "proximos" }))
+    return (data || []).map((item) => ({ id: `evento-${item.id}`, name: item.titulo, location: item.localidad || "Toda la región", description: item.descripcion || "", image: item.imagen || null, href: `/eventos?item=${item.id}`, subtype: "proximos" }))
   }
 
   const [{ data: servicios }, { data: comercios }] = await Promise.all([

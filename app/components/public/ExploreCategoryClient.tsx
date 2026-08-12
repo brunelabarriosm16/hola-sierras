@@ -47,16 +47,16 @@ export function ExploreCategoryClient({ config, items }: { config: ExploreConfig
       </div>
 
       {filteredItems.length ? <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {filteredItems.map((item) => <article key={item.id} className="flex min-h-full flex-col overflow-hidden rounded-[24px] border border-white/80 bg-white/95 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.45)]">
-          <div className="relative aspect-[4/3] bg-slate-100">{item.image ? <OptimizedImage src={item.image} alt={item.name} sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 25vw" className="object-cover" /> : <div className="flex h-full items-center justify-center text-emerald-700/40"><ImageIcon className="h-10 w-10" /></div>}</div>
+        {filteredItems.map((item) => <Link key={item.id} href={item.href} aria-label={`Ver información de ${item.name}`} className="group flex min-h-full flex-col overflow-hidden rounded-[24px] border border-white/80 bg-white/95 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:border-emerald-800/20 hover:shadow-[0_24px_55px_-30px_rgba(15,23,42,0.5)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/40">
+          <div className="relative aspect-[4/3] bg-slate-100">{item.image ? <OptimizedImage src={item.image} alt={item.name} sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 25vw" className="object-cover transition duration-300 group-hover:scale-[1.02]" /> : <div className="flex h-full items-center justify-center text-emerald-700/40"><ImageIcon className="h-10 w-10" /></div>}</div>
           <div className="flex flex-1 flex-col p-5">
             <div className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">{config.types.find((entry) => entry.value === item.subtype)?.label || config.title}</div>
             <h2 className="mt-2 text-xl font-bold leading-tight text-slate-950">{item.name}</h2>
             <div className="mt-2 flex items-center gap-1.5 text-sm text-slate-500"><MapPin className="h-4 w-4" />{item.location}</div>
             <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{item.description || "Conocé más sobre esta propuesta."}</p>
-            <Link href={item.href} className="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-bold text-emerald-800">Ver más <ArrowRight className="h-4 w-4" /></Link>
+            <span className="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-bold text-emerald-800">Ver tarjeta <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></span>
           </div>
-        </article>)}
+        </Link>)}
       </div> : <div className="mt-8 rounded-[28px] border border-slate-200 bg-white p-10 text-center text-slate-600">Todavía no hay resultados para estos filtros.</div>}
     </main>
   </div>
