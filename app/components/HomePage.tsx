@@ -381,6 +381,20 @@ const WELCOME_PROMOTION_ENABLED = true
 const WELCOME_SESSION_KEY = "guia-varela-welcome-shown-v2"
 const WELCOME_LAST_KEY = "guia-varela-last-highlight"
 const WELCOME_SEEN_KEY = "guia-varela-seen-highlights-v1"
+
+async function recordFeaturedNoticeAppearance(avisoId: number) {
+  const response = await fetch("/api/destacados/aparicion", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ avisoId }),
+    keepalive: true,
+  })
+
+  if (!response.ok) {
+    throw new Error("No se pudo registrar la aparición del destacado.")
+  }
+}
+
 const initialContactLeadForm: ContactLeadForm = {
   nombre: "",
   telefono: "",
@@ -703,8 +717,8 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
 
     const timeoutId = window.setTimeout(() => {
       setWelcomeHighlight(nextHighlight)
-      void supabase.rpc("registrar_aparicion_aviso_destacado", {
-        aviso_id: nextHighlight.id,
+      void recordFeaturedNoticeAppearance(nextHighlight.id).catch((error) => {
+        console.error(error)
       })
     }, Math.max(0, nextHighlight.waitSeconds) * 1000)
 
