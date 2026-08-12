@@ -1785,7 +1785,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-3 gap-3 sm:gap-4 lg:grid-cols-5">
+              <div className="mx-auto grid max-w-5xl grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
                 {visibleDirectoryItems.map((listing) => (
                   <LogoGridCard
                     key={listing.key}
