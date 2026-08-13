@@ -26,17 +26,17 @@ export default async function ExplorePage({ params }: { params: Promise<{ catego
 async function loadItems(category: string): Promise<ExploreItem[]> {
   if (category === "eventos") {
     const today = new Date().toISOString().slice(0, 10)
-    const { data } = await supabaseServer.from("eventos").select("id,titulo,descripcion,ubicacion,localidad,imagen,fecha").eq("estado", "activo").or(buildActiveEventsFilter(today)).order("fecha", { ascending: true })
-    return (data || []).map((item) => ({ id: `evento-${item.id}`, name: item.titulo, location: item.localidad || "Toda la región", description: item.descripcion || "", image: item.imagen || null, href: `/eventos?item=${item.id}`, subtype: "proximos" }))
+    const { data } = await supabaseServer.from("eventos").select("id,titulo,categoria,descripcion,ubicacion,localidad,telefono,imagen,fecha,fecha_fin,fecha_solo_mes").eq("estado", "activo").or(buildActiveEventsFilter(today)).order("fecha", { ascending: true })
+    return (data || []).map((item) => ({ id: `evento-${item.id}`, name: item.titulo, location: item.localidad || "Toda la región", description: item.descripcion || "", image: item.imagen || null, href: `/eventos?item=${item.id}`, subtype: "proximos", kind: "evento" as const, category: item.categoria, date: item.fecha, dateEnd: item.fecha_fin, dateOnlyMonth: item.fecha_solo_mes, address: item.ubicacion, phone: item.telefono }))
   }
 
   const [{ data: servicios }, { data: comercios }] = await Promise.all([
-    supabaseServer.from("servicios").select("id,nombre,categoria,descripcion,localidad,imagen").or("estado.is.null,estado.eq.activo").order("id", { ascending: false }),
-    supabaseServer.from("comercios").select("id,nombre,categoria,descripcion,localidad,imagen,imagen_url").or("estado.is.null,estado.eq.activo").order("id", { ascending: false }),
+    supabaseServer.from("servicios").select("id,nombre,categoria,descripcion,localidad,direccion,contacto,imagen").or("estado.is.null,estado.eq.activo").order("id", { ascending: false }),
+    supabaseServer.from("comercios").select("id,nombre,categoria,descripcion,localidad,direccion,telefono,imagen,imagen_url").or("estado.is.null,estado.eq.activo").order("id", { ascending: false }),
   ])
   const candidates = [
-    ...(servicios || []).map((item) => ({ ...item, id: `servicio-${item.id}`, href: `/servicios/${item.id}`, image: item.imagen || null })),
-    ...(comercios || []).map((item) => ({ ...item, id: `comercio-${item.id}`, href: `/comercios/${item.id}`, image: item.imagen_url || item.imagen || null })),
+    ...(servicios || []).map((item) => ({ ...item, id: `servicio-${item.id}`, href: `/servicios/${item.id}`, image: item.imagen || null, kind: "servicio" as const, phone: item.contacto || null })),
+    ...(comercios || []).map((item) => ({ ...item, id: `comercio-${item.id}`, href: `/comercios/${item.id}`, image: item.imagen_url || item.imagen || null, kind: "comercio" as const, phone: item.telefono || null })),
   ]
 
   return candidates.flatMap((item) => {
@@ -46,6 +46,6 @@ async function loadItems(category: string): Promise<ExploreItem[]> {
     if (category === "donde-comer") subtype = findType(text, [["cafeterias", ["cafe", "cafeteria"]], ["para-llevar", ["llevar", "delivery", "rotiseria", "vianda"]], ["restaurantes", ["restaurant", "restoran", "parrilla", "comida", "gastronom", "bar"]]], "")
     if (category === "alojamientos") subtype = findType(text, [["campings", ["camping"]], ["cabanas", ["cabana"]], ["posadas", ["posada", "hostel", "hospedaje"]], ["hoteles", ["hotel", "alojamiento"]]], "")
     if (!subtype) return []
-    return [{ id: item.id, name: item.nombre, location: item.localidad || "Toda la región", description: item.descripcion || "", image: item.image, href: item.href, subtype }]
+    return [{ id: item.id, name: item.nombre, location: item.localidad || "Toda la región", description: item.descripcion || "", image: item.image, href: item.href, subtype, kind: item.kind, category: item.categoria, address: item.direccion, phone: item.phone }]
   })
 }
