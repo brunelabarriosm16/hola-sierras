@@ -43,7 +43,10 @@ async function loadItems(category: string): Promise<ExploreItem[]> {
     const text = normalize(`${item.nombre} ${item.categoria || ""} ${item.descripcion || ""}`)
     let subtype = ""
     if (category === "que-hacer") subtype = findType(text, [["naturaleza", ["naturaleza", "sender", "reserva", "cerro", "parque"]], ["paseos", ["paseo", "recorrido", "visita", "cabalgata"]], ["experiencias", ["experiencia", "actividad", "turismo", "aventura", "taller"]]], "")
-    if (category === "donde-comer") subtype = findType(text, [["cafeterias", ["cafe", "cafeteria"]], ["para-llevar", ["llevar", "delivery", "rotiseria", "vianda"]], ["restaurantes", ["restaurant", "restoran", "parrilla", "comida", "gastronom", "bar"]]], "")
+    if (category === "donde-comer") {
+      const itemCategory = normalize(item.categoria)
+      subtype = findType(itemCategory, [["cafeterias", ["cafeteria"]], ["para-llevar", ["comida para llevar"]], ["restaurantes", ["restaurante"]]], "")
+    }
     if (category === "alojamientos") subtype = findType(text, [["campings", ["camping"]], ["cabanas", ["cabana"]], ["posadas", ["posada", "hostel", "hospedaje"]], ["hoteles", ["hotel", "alojamiento"]]], "")
     if (!subtype) return []
     return [{ id: item.id, name: item.nombre, location: item.localidad || "Toda la región", description: item.descripcion || "", image: item.image, href: item.href, subtype, kind: item.kind, category: item.categoria, address: item.direccion, phone: item.phone }]
