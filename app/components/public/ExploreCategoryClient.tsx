@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
-import { ArrowRight, CalendarDays, ImageIcon, MapPin, Phone } from "lucide-react"
+import { ArrowRight, BedDouble, CalendarDays, Car, ImageIcon, MapPin, MessageCircle, Navigation, Phone, Wifi } from "lucide-react"
+import { ContactActionLink } from "../ContactActionLink"
 import { OptimizedImage } from "../OptimizedImage"
 import { PublicDetailModal } from "../PublicDetailModal"
 import { PublicHeader } from "../PublicHeader"
@@ -27,6 +28,12 @@ export type ExploreItem = {
   phone?: string | null
   premiumDetail?: string | null
   gallery?: string[] | null
+  usesWhatsapp?: boolean | null
+  rooms?: number | null
+  parking?: boolean | null
+  wifi?: boolean | null
+  amenities?: string | null
+  googleMapsUrl?: string | null
 }
 
 export type ExploreConfig = {
@@ -54,6 +61,18 @@ export function ExploreCategoryClient({ config, items }: { config: ExploreConfig
     }
     router.push(item.href)
   }
+
+  const whatsappUrl = (phone: string) => {
+    const digits = phone.replace(/\D/g, "")
+    const number = digits.startsWith("598") ? digits : `598${digits.replace(/^0+/, "")}`
+    return `https://wa.me/${number}`
+  }
+
+  const selectedMapsUrl = selectedItem?.googleMapsUrl || (
+    selectedItem?.address
+      ? getGoogleMapsSearchUrl(selectedItem.name, selectedItem.address, selectedItem.location)
+      : null
+  )
 
   return <div className="min-h-screen bg-[linear-gradient(180deg,#dce9df_0%,#edf4ef_45%,#f8faf8_100%)] text-slate-900">
     <PublicDetailModal
@@ -96,6 +115,16 @@ export function ExploreCategoryClient({ config, items }: { config: ExploreConfig
                 </div>
               </div>
             ) : null}
+            {selectedItem.amenities ? (
+              <div className="rounded-[24px] border border-emerald-100 bg-emerald-50/70 p-5">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                  Otras facilidades
+                </div>
+                <p className="whitespace-pre-line text-sm leading-7 text-slate-700">
+                  {selectedItem.amenities}
+                </p>
+              </div>
+            ) : null}
           </div>
         ) : null
       }
@@ -104,7 +133,42 @@ export function ExploreCategoryClient({ config, items }: { config: ExploreConfig
         ...(selectedItem?.address ? [{ icon: MapPin, text: selectedItem.address, href: getGoogleMapsSearchUrl(selectedItem.name, selectedItem.address, selectedItem.location) }] : []),
         ...(selectedItem?.location ? [{ icon: MapPin, text: selectedItem.location }] : []),
         ...(selectedItem?.phone ? [{ icon: Phone, text: selectedItem.phone }] : []),
+        ...(selectedItem?.rooms != null ? [{ icon: BedDouble, text: `${selectedItem.rooms} ${selectedItem.rooms === 1 ? "habitación" : "habitaciones"}` }] : []),
+        ...(selectedItem?.parking ? [{ icon: Car, text: "Estacionamiento" }] : []),
+        ...(selectedItem?.wifi ? [{ icon: Wifi, text: "Wifi" }] : []),
       ]}
+      actions={
+        selectedItem ? (
+          <>
+            {selectedItem.phone ? (
+              <ContactActionLink
+                href={selectedItem.usesWhatsapp === false ? `tel:${selectedItem.phone}` : whatsappUrl(selectedItem.phone)}
+                mode={selectedItem.usesWhatsapp === false ? "phone" : "whatsapp"}
+                section={selectedItem.kind === "comercio" ? "comercios" : "servicios"}
+                itemId={selectedItem.id.replace(/^[^-]+-/, "")}
+                itemTitle={selectedItem.name}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-2xl bg-green-600 px-5 py-3 font-semibold text-white transition hover:bg-green-500"
+              >
+                {selectedItem.usesWhatsapp === false ? <Phone className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
+                {selectedItem.usesWhatsapp === false ? "Llamar" : "WhatsApp"}
+              </ContactActionLink>
+            ) : null}
+            {selectedMapsUrl ? (
+              <a
+                href={selectedMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 font-semibold text-sky-700 transition hover:bg-sky-100"
+              >
+                <Navigation className="h-4 w-4" />
+                Ver en Google Maps
+              </a>
+            ) : null}
+          </>
+        ) : null
+      }
     />
     <PublicHeader items={buildPublicNav()} />
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">

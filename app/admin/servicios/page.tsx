@@ -47,6 +47,11 @@ type Servicio = {
   destacado?: boolean | null
   estado?: string | null
   usa_whatsapp?: boolean | null
+  habitaciones?: number | null
+  estacionamiento?: boolean | null
+  wifi?: boolean | null
+  facilidades?: string | null
+  google_maps_url?: string | null
   share_count?: number
   whatsapp_count?: number
 }
@@ -70,6 +75,11 @@ type ServicioForm = {
   facebook_url: string
   imagen: string
   usa_whatsapp: boolean
+  habitaciones: string
+  estacionamiento: boolean
+  wifi: boolean
+  facilidades: string
+  google_maps_url: string
 }
 
 const initialForm: ServicioForm = {
@@ -91,6 +101,11 @@ const initialForm: ServicioForm = {
   facebook_url: "",
   imagen: "",
   usa_whatsapp: true,
+  habitaciones: "",
+  estacionamiento: false,
+  wifi: false,
+  facilidades: "",
+  google_maps_url: "",
 }
 
 const categoriasServicio = [
@@ -243,6 +258,11 @@ export default function AdminServiciosPage() {
       facebook_url: servicio.facebook_url || "",
       imagen: servicio.imagen || "",
       usa_whatsapp: servicio.usa_whatsapp ?? true,
+      habitaciones: servicio.habitaciones?.toString() || "",
+      estacionamiento: servicio.estacionamiento ?? false,
+      wifi: servicio.wifi ?? false,
+      facilidades: servicio.facilidades || "",
+      google_maps_url: servicio.google_maps_url || "",
     })
     setIsFormOpen(true)
   }
@@ -405,7 +425,12 @@ export default function AdminServiciosPage() {
           : editingServicio?.estado === "oculto"
             ? "oculto"
             : "activo",
-        usa_whatsapp: hasContact ? formData.usa_whatsapp : false,
+      usa_whatsapp: hasContact ? formData.usa_whatsapp : false,
+      habitaciones: formData.habitaciones ? Number(formData.habitaciones) : null,
+      estacionamiento: formData.estacionamiento,
+      wifi: formData.wifi,
+      facilidades: formData.facilidades.trim() || null,
+      google_maps_url: formData.google_maps_url.trim() || null,
       }
 
     if (editingServicio) {
@@ -583,6 +608,80 @@ export default function AdminServiciosPage() {
                   className="h-28 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-amber-500"
                 />
               </div>
+
+              {isTourismAdmin && ["Alojamientos", "Hoteles", "Posadas", "Cabañas", "Campings"].includes(formData.categoria) ? (
+                <div className="space-y-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                      Datos del alojamiento
+                    </div>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Esta información se muestra en la tarjeta pública del alojamiento.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-slate-900">
+                        Cantidad de habitaciones
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={formData.habitaciones}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, habitaciones: e.target.value }))}
+                        className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-slate-900">
+                        Enlace de Google Maps
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.google_maps_url}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, google_maps_url: e.target.value }))}
+                        placeholder="https://maps.google.com/..."
+                        className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-4">
+                    <label className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm font-medium text-slate-800">
+                      <input
+                        type="checkbox"
+                        checked={formData.estacionamiento}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, estacionamiento: e.target.checked }))}
+                        className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      Tiene estacionamiento
+                    </label>
+                    <label className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-white px-4 py-3 text-sm font-medium text-slate-800">
+                      <input
+                        type="checkbox"
+                        checked={formData.wifi}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, wifi: e.target.checked }))}
+                        className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      Tiene wifi
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-900">
+                      Otras facilidades
+                    </label>
+                    <textarea
+                      value={formData.facilidades}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, facilidades: e.target.value }))}
+                      placeholder="Ej.: piscina, aire acondicionado, desayuno, parrillero..."
+                      className="h-24 w-full resize-none rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              ) : null}
 
               <div className="rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
                 <label className="flex items-center gap-3 text-sm font-medium text-slate-800">
