@@ -25,6 +25,8 @@ export type ExploreItem = {
   dateOnlyMonth?: boolean | null
   address?: string | null
   phone?: string | null
+  premiumDetail?: string | null
+  gallery?: string[] | null
 }
 
 export type ExploreConfig = {
@@ -62,6 +64,41 @@ export function ExploreCategoryClient({ config, items }: { config: ExploreConfig
       imageAlt={selectedItem?.name || "Evento"}
       badge={selectedItem?.category || (selectedItem?.kind === "evento" ? "Próximo evento" : config.title)}
       description={selectedItem?.description || null}
+      extraContent={
+        selectedItem?.premiumDetail || selectedItem?.gallery?.length ? (
+          <div className="space-y-4">
+            {selectedItem.premiumDetail ? (
+              <div className="rounded-[24px] border border-violet-100 bg-violet-50/70 p-5">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-violet-600">
+                  Información ampliada
+                </div>
+                <p className="whitespace-pre-line text-sm leading-7 text-slate-700">
+                  {selectedItem.premiumDetail}
+                </p>
+              </div>
+            ) : null}
+            {selectedItem.gallery?.length ? (
+              <div>
+                <div className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                  Galería de fotos
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {selectedItem.gallery.map((image, index) => (
+                    <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                      <OptimizedImage
+                        src={image}
+                        alt={`${selectedItem.name} ${index + 1}`}
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                        className="object-contain p-2"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null
+      }
       meta={[
         ...(selectedItem?.date ? [{ icon: CalendarDays, text: formatEventDateRange(selectedItem.date, selectedItem.dateEnd, selectedItem.dateOnlyMonth ?? false) }] : []),
         ...(selectedItem?.address ? [{ icon: MapPin, text: selectedItem.address, href: getGoogleMapsSearchUrl(selectedItem.name, selectedItem.address, selectedItem.location) }] : []),

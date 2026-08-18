@@ -31,8 +31,8 @@ async function loadItems(category: string): Promise<ExploreItem[]> {
   }
 
   const [{ data: servicios }, { data: comercios }] = await Promise.all([
-    supabaseServer.from("servicios").select("id,nombre,categoria,descripcion,localidad,direccion,contacto,imagen").or("estado.is.null,estado.eq.activo").order("id", { ascending: false }),
-    supabaseServer.from("comercios").select("id,nombre,categoria,descripcion,localidad,direccion,telefono,imagen,imagen_url").or("estado.is.null,estado.eq.activo").order("id", { ascending: false }),
+    supabaseServer.from("servicios").select("id,nombre,categoria,descripcion,premium_detalle,premium_galeria,localidad,direccion,contacto,imagen").or("estado.is.null,estado.eq.activo").order("id", { ascending: false }),
+    supabaseServer.from("comercios").select("id,nombre,categoria,descripcion,premium_detalle,premium_galeria,localidad,direccion,telefono,imagen,imagen_url").or("estado.is.null,estado.eq.activo").order("id", { ascending: false }),
   ])
   const candidates = [
     ...(servicios || []).map((item) => ({ ...item, id: `servicio-${item.id}`, href: `/servicios/${item.id}`, image: item.imagen || null, kind: "servicio" as const, phone: item.contacto || null })),
@@ -42,13 +42,16 @@ async function loadItems(category: string): Promise<ExploreItem[]> {
   return candidates.flatMap((item) => {
     const text = normalize(`${item.nombre} ${item.categoria || ""} ${item.descripcion || ""}`)
     let subtype = ""
-    if (category === "que-hacer") subtype = findType(text, [["naturaleza", ["naturaleza", "sender", "reserva", "cerro", "parque"]], ["paseos", ["paseo", "recorrido", "visita", "cabalgata"]], ["experiencias", ["experiencia", "actividad", "turismo", "aventura", "taller"]]], "")
+    if (category === "que-hacer") {
+      const itemCategory = normalize(item.categoria)
+      subtype = findType(itemCategory, [["naturaleza", ["naturaleza"]], ["paseos", ["paseo"]], ["experiencias", ["experiencia"]]], "")
+    }
     if (category === "donde-comer") {
       const itemCategory = normalize(item.categoria)
       subtype = findType(itemCategory, [["cafeterias", ["cafeteria"]], ["para-llevar", ["comida para llevar"]], ["restaurantes", ["restaurante"]]], "")
     }
     if (category === "alojamientos") subtype = findType(text, [["campings", ["camping"]], ["cabanas", ["cabana"]], ["posadas", ["posada", "hostel", "hospedaje"]], ["hoteles", ["hotel", "alojamiento"]]], "")
     if (!subtype) return []
-    return [{ id: item.id, name: item.nombre, location: item.localidad || "Toda la región", description: item.descripcion || "", image: item.image, href: item.href, subtype, kind: item.kind, category: item.categoria, address: item.direccion, phone: item.phone }]
+    return [{ id: item.id, name: item.nombre, location: item.localidad || "Toda la región", description: item.descripcion || "", image: item.image, href: item.href, subtype, kind: item.kind, category: item.categoria, address: item.direccion, phone: item.phone, premiumDetail: item.premium_detalle, gallery: item.premium_galeria }]
   })
 }
