@@ -100,6 +100,18 @@ export function PremiumListingPage({
   } as const
   const config = sectionConfig[kind]
   const basePath = config.basePath
+  const normalizedCategory = (category || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+  const backDestination = ["paseos", "naturaleza", "experiencias", "actividades para hacer"].includes(normalizedCategory)
+    ? { href: "/explorar/que-hacer", label: "Qué hacer" }
+    : ["alojamientos", "hoteles", "posadas", "cabanas", "campings"].includes(normalizedCategory)
+      ? { href: "/explorar/alojamientos", label: "Alojamientos" }
+      : ["restaurantes", "cafeterias", "comida para llevar"].includes(normalizedCategory)
+        ? { href: "/explorar/donde-comer", label: "Dónde comer" }
+        : { href: basePath, label: config.plural }
+  const isTourismProfile = backDestination.href.startsWith("/explorar/")
   const shareUrl =
     typeof window === "undefined"
       ? `${basePath}/${id}`
@@ -183,40 +195,41 @@ export function PremiumListingPage({
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fbff_0%,#eef7f2_45%,#ffffff_100%)]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#e5f3e9_0%,#f5f8f3_32%,#f8fbff_70%,#ffffff_100%)]">
       <PublicHeader items={buildPublicNav(config.nav)} />
 
-      <div className="mx-auto max-w-[1520px] px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+      <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <Link
-            href={basePath}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
+            href={backDestination.href}
+            className="inline-flex items-center gap-2 rounded-full border border-emerald-900/10 bg-white/90 px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur transition hover:-translate-x-0.5 hover:border-emerald-300 hover:text-emerald-800"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver a {config.plural}
+            Volver a {backDestination.label}
           </Link>
         </div>
 
-        <section className="overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-[0_24px_80px_-36px_rgba(15,23,42,0.35)]">
-          <div className="grid xl:grid-cols-[0.45fr_1.55fr]">
-            <div className="order-2 bg-[radial-gradient(circle_at_top_left,#e8f6ec_0%,#f4f9ff_38%,#eef4ff_100%)] p-5 sm:p-7 lg:p-10 xl:order-1 xl:row-span-2">
-              <div className="overflow-hidden rounded-[30px] border border-white/80 bg-white/90 shadow-[0_28px_80px_-36px_rgba(15,23,42,0.45)]">
+        <section className="overflow-hidden rounded-[38px] border border-white/80 bg-white shadow-[0_28px_90px_-40px_rgba(15,23,42,0.38)]">
+          <div className="grid lg:grid-cols-[minmax(0,1.08fr)_minmax(380px,0.92fr)]">
+            <div className="order-2 bg-[radial-gradient(circle_at_top_left,#dff1e5_0%,#edf6f0_44%,#eef4ff_100%)] p-5 sm:p-7 lg:order-1 lg:p-9 xl:p-11">
+              <div className="overflow-hidden rounded-[30px] border border-white/90 bg-white shadow-[0_32px_80px_-38px_rgba(15,23,42,0.5)]">
                 {selectedImage ? (
                   <button
                     type="button"
                     onClick={() => openGalleryAt(selectedImageIndex)}
                     onMouseDown={() => openGalleryAt(selectedImageIndex)}
-                    className="relative block aspect-[16/10] w-full cursor-zoom-in overflow-hidden bg-white"
+                    className="group relative block aspect-[4/3] w-full cursor-zoom-in overflow-hidden bg-slate-100"
                     aria-label={`Abrir imagen grande de ${title}`}
                   >
                     <OptimizedImage
                       src={selectedImage}
                       alt={title}
-                      sizes="(max-width: 1280px) 100vw, 65vw"
+                      sizes="(max-width: 1024px) 100vw, 58vw"
                       priority
-                      className="pointer-events-none object-contain bg-white"
+                      className="pointer-events-none object-cover transition duration-700 group-hover:scale-[1.025]"
                     />
-                    <span className="absolute bottom-3 right-3 rounded-full bg-slate-950/70 px-3 py-1 text-xs font-semibold text-white">
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/45 to-transparent" />
+                    <span className="absolute bottom-4 right-4 rounded-full border border-white/20 bg-slate-950/70 px-4 py-2 text-xs font-semibold text-white backdrop-blur">
                       Ampliar
                     </span>
                   </button>
@@ -228,14 +241,14 @@ export function PremiumListingPage({
               </div>
 
               {galleryImages.length > 1 ? (
-                <div className="mt-6">
+                <div className="mt-5">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                         Imágenes
                       </div>
-                      <p className="mt-2 text-sm text-slate-500">
-                        Toca una miniatura para verla grande y pasa de una a otra.
+                      <p className="mt-1 text-sm text-slate-500">
+                        Elegí una foto para verla en grande.
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -257,14 +270,14 @@ export function PremiumListingPage({
                       </button>
                     </div>
                   </div>
-                  <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-3">
+                  <div className="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-5 lg:grid-cols-4 xl:grid-cols-5">
                     {galleryImages.map((image, index) => (
                       <button
                         type="button"
                         key={`${image}-${index}`}
                         onClick={() => openGalleryAt(index)}
                         onMouseDown={() => openGalleryAt(index)}
-                        className={`relative aspect-[4/3] cursor-zoom-in overflow-hidden rounded-[24px] border bg-white shadow-sm transition ${
+                        className={`relative aspect-square cursor-zoom-in overflow-hidden rounded-2xl border-2 bg-white shadow-sm transition hover:-translate-y-0.5 ${
                           selectedImageIndex === index
                             ? "border-blue-400 ring-2 ring-blue-100"
                             : "border-slate-200 hover:border-blue-300"
@@ -274,7 +287,7 @@ export function PremiumListingPage({
                           src={image}
                           alt={`${title} ${index + 1}`}
                           sizes="(max-width: 768px) 50vw, 25vw"
-                          className="pointer-events-none object-contain p-2"
+                          className="pointer-events-none object-cover"
                         />
                       </button>
                     ))}
@@ -283,19 +296,19 @@ export function PremiumListingPage({
               ) : null}
             </div>
 
-            <div className="order-1 bg-white p-6 pb-0 sm:p-8 sm:pb-0 lg:p-10 lg:pb-0 xl:order-2">
-              <div className="rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-6">
+            <div className="order-1 flex bg-white p-6 sm:p-8 lg:order-2 lg:p-9 xl:p-11">
+              <div className="flex w-full flex-col justify-center rounded-[30px] border border-slate-200 bg-[linear-gradient(145deg,#ffffff_0%,#f7fbf8_52%,#f7faff_100%)] p-6 shadow-[0_18px_50px_-38px_rgba(15,23,42,0.35)] sm:p-8">
                 {category ? (
                   <div className="inline-flex rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700">
                     {category}
                   </div>
                 ) : null}
 
-                <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+                <h1 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.4rem]">
                   {title}
                 </h1>
 
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                   {address ? <InfoPill icon={<MapPin className="h-4 w-4" />} text={address} /> : null}
                   {location ? <InfoPill icon={<MapPin className="h-4 w-4" />} text={location} /> : null}
                   {phone ? <InfoPill icon={<Phone className="h-4 w-4" />} text={phone} /> : null}
@@ -304,7 +317,7 @@ export function PremiumListingPage({
                   ) : null}
                 </div>
 
-                <div className="mt-8">
+                <div className="mt-9 border-t border-slate-200/80 pt-7">
                   <div className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
                     Acciones
                   </div>
@@ -359,11 +372,11 @@ export function PremiumListingPage({
               </div>
             </div>
 
-            <div className="order-3 bg-white px-6 pb-6 pt-6 sm:px-8 sm:pb-8 lg:px-10 lg:pb-10 xl:order-3">
+            <div className="order-3 grid gap-5 border-t border-slate-100 bg-white p-6 sm:p-8 lg:col-span-2 lg:grid-cols-2 lg:p-10 xl:p-11">
               {description ? (
-                <div className="rounded-[24px] border border-slate-100 bg-slate-50/80 p-6">
+                <div className={`rounded-[26px] border border-emerald-100 bg-emerald-50/45 p-6 sm:p-7 ${!premiumDetail ? "lg:col-span-2" : ""}`}>
                   <div className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
-                    Sobre este perfil
+                    {isTourismProfile ? "Sobre la experiencia" : "Sobre este perfil"}
                   </div>
                   <p className="whitespace-pre-line text-base leading-8 text-slate-700">
                     {description}
@@ -372,7 +385,7 @@ export function PremiumListingPage({
               ) : null}
 
               {premiumDetail ? (
-                <div className={`${description ? "mt-5" : ""} rounded-[24px] border border-sky-100 bg-sky-50/70 p-6`}>
+                <div className={`rounded-[26px] border border-sky-100 bg-sky-50/60 p-6 sm:p-7 ${!description ? "lg:col-span-2" : ""}`}>
                   <div className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">
                     Información ampliada
                   </div>
@@ -383,7 +396,7 @@ export function PremiumListingPage({
               ) : null}
 
               {premiumExtraTitle || premiumExtraDetail || premiumExtraGallery?.length ? (
-                <div className={`${description || premiumDetail ? "mt-5" : ""} rounded-[24px] border border-amber-100 bg-amber-50/70 p-6`}>
+                <div className="rounded-[26px] border border-amber-100 bg-amber-50/70 p-6 sm:p-7 lg:col-span-2">
                   <div className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-amber-700">
                     Bloque extra
                   </div>
