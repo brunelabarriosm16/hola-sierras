@@ -15,6 +15,7 @@ import { recordContentVisit, recordSiteVisit } from "../../lib/contentVisits"
 import { getGoogleMapsSearchUrl } from "../../lib/maps"
 import { buildPublicNav } from "../../lib/publicNav"
 import { recordViewMore } from "../../lib/viewMoreTracking"
+import { isTourismProposal } from "../../lib/tourism"
 
 export type Servicio = {
   id: number
@@ -38,8 +39,10 @@ export type Servicio = {
 
 export function ServiciosPageClient({
   initialServicios,
+  tourismOnly = false,
 }: {
   initialServicios: Servicio[]
+  tourismOnly?: boolean
 }) {
   const router = useRouter()
   const [servicios] = useState<Servicio[]>(initialServicios)
@@ -92,14 +95,15 @@ export function ServiciosPageClient({
 
   const serviciosFiltrados = useMemo(() => {
     const term = search.trim().toLowerCase()
-    if (!term) return servicios
+    return servicios.filter((servicio) => {
+      if (tourismOnly && !isTourismProposal(servicio)) return false
+      if (!term) return true
 
-    return servicios.filter((servicio) =>
-      `${servicio.nombre} ${servicio.categoria} ${servicio.descripcion || ""} ${servicio.responsable || ""} ${servicio.contacto || ""} ${servicio.direccion || ""} ${servicio.localidad || ""}`
+      return `${servicio.nombre} ${servicio.categoria} ${servicio.descripcion || ""} ${servicio.responsable || ""} ${servicio.contacto || ""} ${servicio.direccion || ""} ${servicio.localidad || ""}`
         .toLowerCase()
         .includes(term)
-    )
-  }, [servicios, search])
+    })
+  }, [servicios, search, tourismOnly])
 
   const serviciosAgrupados = useMemo(() => {
     return serviciosFiltrados.reduce<Record<string, Servicio[]>>((acc, servicio) => {
@@ -257,9 +261,13 @@ export function ServiciosPageClient({
       <PublicHeader items={buildPublicNav("servicios")} />
 
       <div className="mx-auto max-w-7xl px-6 py-16">
-        <h1 className="text-3xl font-bold text-gray-900">Servicios y Profesionales</h1>
+        <h1 className="text-3xl font-bold text-gray-900">
+          {tourismOnly ? "Propuestas Turísticas" : "Servicios y Profesionales"}
+        </h1>
         <p className="mt-2 text-gray-600">
-          Profesionales, alojamientos y otros servicios disponibles en la ciudad
+          {tourismOnly
+            ? "Todos los alojamientos y las actividades para disfrutar de la región."
+            : "Profesionales, alojamientos y otros servicios disponibles en la ciudad"}
         </p>
 
         <div className="mt-6 max-w-xl">
@@ -280,7 +288,9 @@ export function ServiciosPageClient({
             <p className="text-gray-600">
               {servicios.length === 0
                 ? "Todavía no hay servicios cargados."
-                : "No se encontraron servicios con esa busqueda."}
+                : tourismOnly
+                  ? "No se encontraron propuestas turísticas con esa búsqueda."
+                  : "No se encontraron servicios con esa búsqueda."}
             </p>
           </div>
         ) : (

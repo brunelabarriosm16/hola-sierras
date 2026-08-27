@@ -19,8 +19,18 @@ const getServicios = unstable_cache(
   { revalidate: 3600 }
 )
 
-export default async function ServiciosPage() {
+export default async function ServiciosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tipo?: string }>
+}) {
   const data = await getServicios()
+  const params = await searchParams
 
-  return <ServiciosPageClient initialServicios={data} />
+  return (
+    <ServiciosPageClient
+      initialServicios={data}
+      tourismOnly={params.tipo === "turismo"}
+    />
+  )
 }

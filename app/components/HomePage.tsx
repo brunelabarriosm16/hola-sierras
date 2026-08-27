@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation"
 import { ContactActionLink } from "./ContactActionLink"
 import { ExternalLinksButtons } from "./ExternalLinksButtons"
 import { OptimizedImage } from "./OptimizedImage"
+import { isAccommodationProposal, isTourismProposal } from "../lib/tourism"
 import { PublicHeader } from "./PublicHeader"
 import { ShareButton } from "./ShareButton"
 import { HomeSearch } from "./HomeSearch"
@@ -500,81 +501,7 @@ function LogoGridCard({
   )
 }
 
-function isTourismProposal(servicio: Servicio) {
-  const searchable = [
-    servicio.nombre,
-    servicio.categoria,
-    servicio.descripcion,
-    servicio.responsable,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-
-  const tourismTerms = [
-    "alojamiento",
-    "alojamientos",
-    "cabana",
-    "cabanas",
-    "camping",
-    "hospedaje",
-    "hostel",
-    "hotel",
-    "posada",
-    "actividad",
-    "actividades",
-    "astroturismo",
-    "cabalgata",
-    "cabalgatas",
-    "experiencia",
-    "experiencias",
-    "guia",
-    "guiada",
-    "guiadas",
-    "guiado",
-    "guiados",
-    "museo",
-    "museos",
-    "paseo",
-    "paseos",
-    "recreativa",
-    "recreativas",
-    "senderismo",
-    "turismo",
-    "turistica",
-    "turisticas",
-    "turistico",
-    "turisticos",
-    "rural",
-    "visita",
-    "visitas",
-  ]
-
-  return tourismTerms.some((term) => searchable.includes(term))
-}
-
 type TourismFilter = "todos" | "alojamientos" | "actividades"
-
-function isAccommodationProposal(servicio: Servicio) {
-  const searchable = [servicio.nombre, servicio.categoria, servicio.descripcion]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-
-  return [
-    "alojamiento",
-    "cabana",
-    "camping",
-    "hospedaje",
-    "hostel",
-    "hotel",
-    "posada",
-  ].some((term) => searchable.includes(term))
-}
 
 export function HomePage({ initialData }: { initialData: HomePageData }) {
   const router = useRouter()
@@ -1908,6 +1835,13 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                 </button>
               ))}
             </div>
+            <Link
+              href="/servicios?tipo=turismo"
+              className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-800/20 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:border-emerald-800/35 hover:bg-emerald-50"
+            >
+              Ver todas las propuestas turísticas
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
 
           {filteredTourismProposals.length === 0 ? (
