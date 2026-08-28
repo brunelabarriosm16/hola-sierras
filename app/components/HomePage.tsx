@@ -504,6 +504,11 @@ function LogoGridCard({
   )
 }
 
+function hasValidListingName(name: string | null | undefined) {
+  const normalizedName = name?.trim() || ""
+  return /[\p{L}\p{N}]/u.test(normalizedName) && !/[<>]/.test(normalizedName)
+}
+
 type TourismFilter = "todos" | "alojamientos" | "actividades"
 
 export function HomePage({ initialData }: { initialData: HomePageData }) {
@@ -543,6 +548,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   const directoryItems = useMemo<UnifiedDirectoryItem[]>(
     () => {
       const businessItems: UnifiedDirectoryItem[] = featuredBusinesses
+        .filter((business) => hasValidListingName(business.nombre))
         .map((business) => ({
           key: `comercio-${business.id}`,
           type: "comercio" as const,
@@ -558,6 +564,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         })
 
       const serviceItems: UnifiedDirectoryItem[] = orderedServicios
+        .filter((servicio) => hasValidListingName(servicio.nombre))
         .map((servicio) => ({
           key: `servicio-${servicio.id}`,
           type: "servicio" as const,
