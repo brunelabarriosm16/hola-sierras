@@ -467,6 +467,8 @@ function LogoGridCard({
   onClick: () => void
   onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 }) {
+  const [imageFailed, setImageFailed] = useState(false)
+
   const imageFrameClass = showName
     ? "relative flex h-full max-h-32 w-full items-center justify-center overflow-hidden rounded-[14px] bg-slate-50"
     : "relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden rounded-[14px] bg-slate-50"
@@ -481,12 +483,13 @@ function LogoGridCard({
       aria-label={`Ver ficha de ${name}`}
     >
       <div className={imageFrameClass}>
-        {image ? (
+        {image && !imageFailed ? (
           <OptimizedImage
             src={image}
             alt={name}
             sizes="(max-width: 768px) 33vw, 20vw"
             className="object-contain p-1 transition duration-200 group-hover:scale-[1.03] sm:p-2"
+            onError={() => setImageFailed(true)}
           />
         ) : (
           fallback

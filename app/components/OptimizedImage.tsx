@@ -8,6 +8,7 @@ type OptimizedImageProps = {
   sizes: string
   className?: string
   priority?: boolean
+  onError?: () => void
 }
 
 export function OptimizedImage({
@@ -16,6 +17,7 @@ export function OptimizedImage({
   sizes,
   className,
   priority = false,
+  onError,
 }: OptimizedImageProps) {
   return (
     <Image
@@ -27,6 +29,7 @@ export function OptimizedImage({
       loading={priority ? "eager" : "lazy"}
       unoptimized={src.startsWith("data:") || src.startsWith("/api/media/")}
       className={className}
+      onError={onError}
     />
   )
 }
