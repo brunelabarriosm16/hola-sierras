@@ -41,7 +41,7 @@ export function buildHomePublicNav() {
     { href: "/cursos", label: "Cursos y Clases" },
     { href: "/instituciones", label: "Instituciones" },
     { href: "/#comercios", label: "Comercios y Servicios" },
-    { href: "/#propuestas-turisticas", label: "Propuestas Turísticas" },
+    { href: "/servicios?tipo=turismo", label: "Propuestas Turísticas" },
     { href: "/#contacto", label: "Contacto" },
   ]
 }
