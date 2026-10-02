@@ -74,24 +74,34 @@ const getHomeSupabaseData = unstable_cache(
         .maybeSingle(),
     ])
 
+    const publicBusinesses = (featuredBusinesses || []).map((business) => ({
+      ...business,
+      imagen: null,
+      imagen_url: business.imagen_url || business.imagen ? `/api/media/comercio/${business.id}` : null,
+    }))
+    const publicServices = (servicios || []).map((service) => ({
+      ...service,
+      imagen: service.imagen ? `/api/media/servicio/${service.id}` : null,
+    }))
+
     return {
       featuredNotices: featuredNotices || [],
-      featuredBusinesses: featuredBusinesses || [],
+      featuredBusinesses: publicBusinesses,
       eventos: (eventosData || []).slice(0, 8).map((evento) => ({
         ...evento,
         imagen: evento.imagen ? `/api/media/evento/${evento.id}` : null,
       })),
       cursos: (cursos || []).slice(0, 8),
-      servicios: servicios || [],
+      servicios: publicServices,
       instituciones: instituciones || [],
       allCursos: cursos || [],
-      allServicios: servicios || [],
+      allServicios: publicServices,
       sobreVarela: sobreVarelaData
         ? { ...defaultSobreVarela, ...sobreVarelaData }
         : defaultSobreVarela,
     } satisfies Omit<HomePageData, "weather">
   },
-  ["home-supabase-data-v4-media-proxy"],
+  ["home-supabase-data-v5-directory-media"],
   { revalidate: 3600 }
 )
 
