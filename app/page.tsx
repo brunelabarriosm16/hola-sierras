@@ -1,7 +1,14 @@
+import { WEATHER_LOCATIONS } from "./lib/weatherLocations"
 import { HomePage, type HomePageData, type WeatherData } from "./components/HomePage"
 import { buildActiveEventsFilter } from "./lib/eventDates"
 import { supabaseServer } from "./lib/supabaseServer"
 import { unstable_cache } from "next/cache"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Hola Sierras | Descubrí las sierras de Uruguay",
+  description: "Tu próxima escapada empieza en Hola Sierras. Descubrí alojamientos, paseos, sabores locales y eventos en las sierras de Uruguay.",
+}
 
 export const revalidate = 3600
 export const fetchCache = "default-cache"
@@ -9,11 +16,11 @@ export const fetchCache = "default-cache"
 const defaultSobreVarela = {
   titulo: "Hola Sierras",
   texto_1:
-    "Hola Sierras reúne propuestas, servicios y novedades de Aiguá, Mariscala y la región en un solo lugar.",
+    "Hola Sierras reúne propuestas, servicios y novedades de las sierras de Uruguay en un solo lugar.",
   texto_2:
     "Un espacio pensado para mostrar comercios, eventos, cursos, instituciones y servicios de la zona.",
   texto_3:
-    "Cartelera online de las sierras. Todo lo que pasa en Aiguá, Mariscala y la región.",
+    "Cartelera online de las sierras. Todo lo que pasa en las sierras de Uruguay.",
   imagen_url: null,
 }
 
@@ -101,18 +108,14 @@ const getHomeSupabaseData = unstable_cache(
         : defaultSobreVarela,
     } satisfies Omit<HomePageData, "weather">
   },
-  ["home-supabase-data-v5-directory-media"],
+  ["home-supabase-data-v6-sierras-region"],
   { revalidate: 3600 }
 )
 
 export default async function Page() {
-  const weatherLocations = [
-    { name: "Mariscala", latitude: -34.04085, longitude: -54.77732 },
-    { name: "Aiguá", latitude: -34.20498, longitude: -54.75665 },
-  ] as const
 
   const weatherPromise = Promise.all<WeatherData | null>(
-    weatherLocations.map(async (location) => {
+    WEATHER_LOCATIONS.map(async (location) => {
       try {
         const response = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=America%2FMontevideo&forecast_days=1`,

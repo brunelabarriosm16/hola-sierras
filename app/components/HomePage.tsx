@@ -16,9 +16,12 @@ import { ContactActionLink } from "./ContactActionLink"
 import { ExternalLinksButtons } from "./ExternalLinksButtons"
 import { OptimizedImage } from "./OptimizedImage"
 import { isAccommodationProposal, isTourismProposal } from "../lib/tourism"
+import { SIERRAS_DESTINATIONS, matchesDestination, type DestinationFilter } from "../lib/destinations"
 import { PublicHeader } from "./PublicHeader"
 import { ShareButton } from "./ShareButton"
+import { WEATHER_LOCATIONS } from "../lib/weatherLocations"
 import { HomeSearch } from "./HomeSearch"
+import "./home-tourism.css"
 import { SorteoParticipationForm } from "./SorteoParticipationForm"
 import { formatEventDateRange } from "../lib/eventDates"
 import { parseEventDescription } from "../lib/eventSubmissionMeta"
@@ -245,10 +248,6 @@ const WEATHER_LABELS: Record<number, string> = {
   95: "Tormenta",
 }
 
-const WEATHER_LOCATIONS = [
-  { name: "Mariscala", latitude: -34.04085, longitude: -54.77732 },
-  { name: "Aiguá", latitude: -34.20498, longitude: -54.75665 },
-] as const
 
 async function fetchWeatherItems() {
   const results: Array<WeatherData | null> = await Promise.all(
@@ -370,11 +369,11 @@ const getInitialWelcomeHighlight = (featuredNotices: FeaturedNotice[]): WelcomeH
 const defaultSobreVarela: SobreVarelaConfig = {
   titulo: "Hola Sierras",
   texto_1:
-    "Hola Sierras reúne propuestas, servicios y novedades de Aiguá, Mariscala y la región en un solo lugar.",
+    "Hola Sierras reúne propuestas, servicios y novedades de las sierras de Uruguay en un solo lugar.",
   texto_2:
     "Un espacio pensado para mostrar comercios, eventos, cursos, instituciones y servicios de la zona.",
   texto_3:
-    "Cartelera online de las sierras. Todo lo que pasa en Aiguá, Mariscala y la región.",
+    "Cartelera online de las sierras. Todo lo que pasa en las sierras de Uruguay.",
   imagen_url: null,
 }
 
@@ -526,6 +525,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   const [selectedCurso, setSelectedCurso] = useState<Curso | null>(null)
   const [selectedInstitucion, setSelectedInstitucion] = useState<Institucion | null>(null)
   const [tourismFilter, setTourismFilter] = useState<TourismFilter>("todos")
+  const [destinationFilter, setDestinationFilter] = useState<DestinationFilter>("todos")
   const [contactLeadForm, setContactLeadForm] = useState<ContactLeadForm>(
     initialContactLeadForm
   )
@@ -606,11 +606,12 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   )
   const filteredTourismProposals = useMemo(
     () => tourismProposals.filter((servicio) => {
+      if (!matchesDestination(servicio.localidad, destinationFilter)) return false
       if (tourismFilter === "todos") return true
       const isAccommodation = isAccommodationProposal(servicio)
       return tourismFilter === "alojamientos" ? isAccommodation : !isAccommodation
     }),
-    [tourismFilter, tourismProposals]
+    [tourismFilter, destinationFilter, tourismProposals]
   )
   const tourismProposalPageCount = Math.max(
     1,
@@ -787,7 +788,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
   const contactLeadSubmitHint =
     "Te vamos a contactar usando el teléfono que nos compartas."
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#d7e6db_0%,#b6cdbd_46%,#95b19f_100%)] text-slate-900">
+    <div className="sierras-home min-h-screen bg-[linear-gradient(180deg,#d7e6db_0%,#b6cdbd_46%,#95b19f_100%)] text-slate-900">
       {zoomedImage ? (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/92 p-4">
           <button
@@ -1536,6 +1537,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         backgroundClassName="bg-white/80"
       />
 
+      <main id="contenido">
       <section
         id="inicio"
         className="relative overflow-hidden bg-[linear-gradient(180deg,#edf3ee_0%,#dce8df_24%,#c7d8cc_62%,#b7cabd_100%)] py-20 md:py-28"
@@ -1573,7 +1575,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         <div className="relative z-10 mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
           <div className="mx-auto mb-8 inline-flex items-center gap-2 rounded-full border border-emerald-900/10 bg-[#f0f3ea]/88 px-4 py-2 text-sm font-medium text-emerald-900 shadow-sm">
             <MapPin className="h-4 w-4" />
-            Aiguá, Mariscala y la región
+            Sierras de Uruguay
           </div>
 
           <div className="mx-auto max-w-5xl">
@@ -1583,10 +1585,10 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
           </div>
 
           <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-slate-700 sm:text-xl">
-            Naturaleza, sabores, paseos y experiencias para disfrutar Aiguá, Mariscala y toda la región.
+            Naturaleza, sabores, paseos y experiencias para disfrutar las sierras.
           </p>
 
-          <HomeSearch />
+          <div id="descubrir"><HomeSearch /></div>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
@@ -1609,86 +1611,257 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
         </div>
       </section>
 
-      <section className="py-6">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-[28px] border border-emerald-900/10 bg-[#fbf8f1]/92 p-6 shadow-[0_18px_45px_-30px_rgba(66,95,74,0.18)] backdrop-blur">
-            <div className="mb-5">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-800">
-                Estado del tiempo
-              </p>
-              <h2 className="mt-1 text-2xl font-semibold text-slate-900">
-                Clima en Mariscala y Aiguá
-              </h2>
-            </div>
 
-            {weatherItems.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                {weatherItems.map((weatherItem) => {
-                  const WeatherIcon = getWeatherIcon(weatherItem.weatherCode)
-                  const weatherLabel =
-                    WEATHER_LABELS[weatherItem.weatherCode] || "Clima actual"
 
-                  return (
-                    <div
-                      key={weatherItem.location}
-                      className="grid gap-4 rounded-[24px] border border-emerald-900/10 bg-[#f1f5ee]/95 p-5 md:grid-cols-[auto_1fr_auto] md:items-center"
-                    >
-                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#fffdf8] text-emerald-700">
-                        <WeatherIcon className="h-8 w-8" />
-                      </div>
-
-                      <div>
-                        <h3 className="text-xl font-semibold text-slate-900">
-                          {weatherItem.location}
-                        </h3>
-                        <p className="mt-2 text-base text-slate-600">
-                          {weatherLabel}. Min {Math.round(weatherItem.tempMin)}
-                          {"\u00B0"}C, max {Math.round(weatherItem.tempMax)}
-                          {"\u00B0"}C y viento de{" "}
-                          {Math.round(weatherItem.windSpeed)} km/h.
-                        </p>
-                      </div>
-
-                      <div className="rounded-2xl bg-[#fffdf8] px-5 py-4 text-center text-emerald-800">
-                        <div className="text-3xl font-bold">
-                          {Math.round(weatherItem.temperature)}
-                          {"\u00B0"}C
-                        </div>
-                        <div className="text-sm font-medium">Ahora</div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {WEATHER_LOCATIONS.map((location) => (
-                  <div
-                    key={location.name}
-                    className="grid gap-4 rounded-[24px] border border-emerald-900/10 bg-[#f1f5ee]/95 p-5 md:grid-cols-[auto_1fr] md:items-center"
-                  >
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#fffdf8] text-emerald-700">
-                      <CloudSun className="h-8 w-8" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-slate-900">
-                        {location.name}
-                      </h3>
-                      <p className="mt-2 text-base text-slate-600">
-                        {weatherStatus === "loading"
-                          ? "Cargando estado del tiempo..."
-                          : "Estado del tiempo no disponible por el momento."}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+      <section className="sierras-weather" aria-label="Tiempo actual en la región">
+        <span className="sierras-weather-label"><CloudSun size={20} /> Un buen día empieza con un buen plan</span>
+        <div className="sierras-weather-locations">
+          {weatherItems.length ? weatherItems.map((weatherItem) => {
+            const WeatherIcon = getWeatherIcon(weatherItem.weatherCode)
+            return <span key={weatherItem.location}><WeatherIcon size={19} /><strong>{weatherItem.location}</strong> {Math.round(weatherItem.temperature)}°C <span className="sierras-weather-condition">{WEATHER_LABELS[weatherItem.weatherCode] || "Clima actual"}</span></span>
+          }) : <span>{weatherStatus === "loading" ? "Consultando el tiempo…" : "El tiempo no está disponible por el momento."}</span>}
         </div>
       </section>
 
       <div className="flex flex-col">
+      <section id="propuestas-turisticas" className="sierras-proposals order-1 py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 text-center">
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">
+              Propuestas Turísticas
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
+              Alojamientos y experiencias para disfrutar las sierras a tu ritmo.
+            </p>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2" role="group" aria-label="Filtrar propuestas por destino">
+              <span className="mr-2 text-xs font-semibold uppercase tracking-widest text-emerald-900">Destino</span>
+              {(["todos", ...SIERRAS_DESTINATIONS] as const).map((destination) => (
+                <button key={destination} type="button" onClick={() => setDestinationFilter(destination)} aria-pressed={destinationFilter === destination}
+                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${destinationFilter === destination ? "border-emerald-800 bg-emerald-800 text-white" : "border-emerald-800/15 bg-white/75 text-emerald-900 hover:bg-white"}`}>
+                  {destination === "todos" ? "Todas las sierras" : destination}
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 flex flex-wrap justify-center gap-2" aria-label="Filtrar propuestas turísticas">
+              {([
+                ["todos", "Todos"],
+                ["alojamientos", "Alojamientos"],
+                ["actividades", "Actividades para hacer"],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setTourismFilter(value)}
+                  aria-pressed={tourismFilter === value}
+                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                    tourismFilter === value
+                      ? "border-emerald-800 bg-emerald-800 text-white shadow-sm"
+                      : "border-emerald-800/15 bg-white/75 text-emerald-900 hover:bg-white"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <Link
+              href="/servicios?tipo=turismo"
+              className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-800/20 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:border-emerald-800/35 hover:bg-emerald-50"
+            >
+              Ver todas las propuestas turísticas
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {filteredTourismProposals.length === 0 ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
+              Todavía no hay propuestas para estos filtros. Probá otro destino o tipo de experiencia.
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+                {visibleTourismProposals.map((servicio) => (
+                  <div
+                    key={servicio.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      if (servicio.premium_activo) {
+                        void recordViewMore("servicios", String(servicio.id), servicio.nombre)
+                        router.push(`/servicios/${servicio.id}`)
+                        return
+                      }
+
+                      handleViewMoreClick(
+                        "servicios",
+                        String(servicio.id),
+                        servicio.nombre,
+                        () => setSelectedServicio(servicio)
+                      )
+                    }}
+                    onKeyDown={(event) =>
+                      handleCardKeyDown(event, () => {
+                        if (servicio.premium_activo) {
+                          void recordViewMore("servicios", String(servicio.id), servicio.nombre)
+                          router.push(`/servicios/${servicio.id}`)
+                          return
+                        }
+
+                        handleViewMoreClick(
+                          "servicios",
+                          String(servicio.id),
+                          servicio.nombre,
+                          () => setSelectedServicio(servicio)
+                        )
+                      })
+                    }
+                    className="group cursor-pointer overflow-hidden rounded-[20px] border border-white/80 bg-white/92 shadow-[0_16px_38px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  >
+                    <div className="relative aspect-[4/3] bg-slate-100">
+                      {servicio.imagen ? (
+                        <OptimizedImage
+                          src={servicio.imagen}
+                          alt={servicio.nombre}
+                          sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                          className="object-cover transition duration-200 group-hover:scale-[1.03]"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-slate-400">
+                          <MapPin className="h-9 w-9" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      {servicio.categoria ? (
+                        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                          {servicio.categoria}
+                        </div>
+                      ) : null}
+                      <h3 className="line-clamp-2 text-base font-semibold leading-tight text-slate-900 sm:text-lg">
+                        {servicio.nombre}
+                      </h3>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {tourismProposalPageCount > 1 ? (
+                <div className="mt-7 text-center text-sm text-slate-500">
+                  Siempre hay algo más por descubrir. Explorá todas las propuestas de la región.
+                </div>
+              ) : null}
+            </>
+          )}
+        </div>
+      </section>
+
+      <section
+        id="eventos"
+        ref={eventsSectionRef}
+        className="order-2 py-16"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <div className="mb-4 inline-flex rounded-full bg-sky-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700">
+              Hoy en las Sierras
+            </div>
+            <h2 className="text-4xl font-semibold tracking-tight text-slate-900 md:text-5xl">
+              Próximos eventos
+            </h2>
+            <p className="mt-4 text-xl text-slate-500">
+              Encuentros y planes para sumar a tu visita.
+            </p>
+            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href="/eventos"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
+              >
+                Ver todos los eventos
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link href="/usuarios/eventos/nuevo?public=1" className="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold text-emerald-900 underline-offset-4 hover:underline">
+                Sumá tu evento <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+
+          {visibleEventos.length === 0 ? <p className="sierras-empty">Estamos preparando nuevos planes. Volvé pronto para descubrir la agenda de la región.</p> : null}
+          <div
+            className="flex items-stretch snap-x snap-mandatory gap-5 overflow-x-auto overscroll-x-contain pb-6 [scrollbar-color:rgba(6,95,70,0.35)_transparent] [scrollbar-width:thin] md:gap-7"
+            aria-label="Eventos destacados; deslizá hacia el costado para ver más"
+          >
+            {visibleEventos.map((event) => (
+              <div
+                key={event.id}
+                role="button"
+                tabIndex={0}
+                style={{ flex: "0 0 min(85vw, 24rem)", minWidth: 0 }}
+                onClick={() =>
+                  handleViewMoreClick(
+                    "eventos",
+                    String(event.id),
+                    event.titulo,
+                    () => setSelectedEvento(event)
+                  )
+                }
+                onKeyDown={(eventKey) =>
+                  handleCardKeyDown(eventKey, () =>
+                    handleViewMoreClick(
+                      "eventos",
+                      String(event.id),
+                      event.titulo,
+                      () => setSelectedEvento(event)
+                    )
+                  )
+                }
+                className="flex snap-start cursor-pointer flex-col self-stretch overflow-hidden rounded-[20px] border border-emerald-800/18 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45),0_0_0_1px_rgba(72,110,82,0.05)] transition hover:-translate-y-1.5 hover:border-emerald-800/24 hover:shadow-[0_28px_60px_-30px_rgba(74,110,82,0.18),0_0_0_1px_rgba(72,110,82,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/35 md:rounded-[28px]"
+              >
+                {event.imagen && (
+                  <div className="relative aspect-[4/3] w-full overflow-hidden border-b border-slate-100 bg-[radial-gradient(circle_at_center,#ffffff_0%,#f8fafc_72%,#eef2f7_100%)]">
+                    <OptimizedImage
+                      src={event.imagen}
+                      alt={event.titulo}
+                      sizes="(max-width: 640px) 19rem, (max-width: 1024px) 46vw, 31vw"
+                      className="object-contain p-2 sm:p-3"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-1 flex-col p-4 md:p-6">
+                  <div className="mb-2 flex items-center gap-2 text-xs text-blue-500 md:mb-4 md:text-lg">
+                    <CalendarDays className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
+                    <span>{formatEventDateRange(event.fecha, event.fecha_fin, event.fecha_solo_mes ?? false)}</span>
+                  </div>
+
+                  <div className="mb-2 inline-flex rounded-full bg-sky-50 px-2 py-1 text-[11px] font-semibold text-sky-700 md:mb-3 md:px-3 md:text-xs">
+                    {normalizeEventCategory(event.categoria)}
+                  </div>
+
+                  <h3 className="text-base font-semibold leading-tight text-slate-900 md:text-[22px]">
+                    {event.titulo}
+                  </h3>
+
+                  <a
+                    href={
+                      getGoogleMapsSearchUrl(
+                        event.titulo,
+                        event.ubicacion,
+                        event.localidad
+                      ) || "#"
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(clickEvent) => clickEvent.stopPropagation()}
+                    className="mt-2 line-clamp-2 block text-xs text-sky-700 transition hover:text-sky-800 md:text-sm"
+                  >
+                    {event.ubicacion}
+                  </a>
+
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="comercios" className="order-5 py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 text-center">
@@ -1812,231 +1985,6 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
               ) : null}
             </>
           )}
-        </div>
-      </section>
-
-      <section id="propuestas-turisticas" className="order-6 py-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 text-center">
-            <h2 className="text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">
-              Propuestas Turísticas
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
-              Alojamientos y actividades para hacer en Aiguá, Mariscala y las sierras.
-            </p>
-            <div className="mt-4 flex flex-wrap justify-center gap-2" aria-label="Filtrar propuestas turísticas">
-              {([
-                ["todos", "Todos"],
-                ["alojamientos", "Alojamientos"],
-                ["actividades", "Actividades para hacer"],
-              ] as const).map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setTourismFilter(value)}
-                  aria-pressed={tourismFilter === value}
-                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                    tourismFilter === value
-                      ? "border-emerald-800 bg-emerald-800 text-white shadow-sm"
-                      : "border-emerald-800/15 bg-white/75 text-emerald-900 hover:bg-white"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <Link
-              href="/servicios?tipo=turismo"
-              className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-800/20 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:border-emerald-800/35 hover:bg-emerald-50"
-            >
-              Ver todas las propuestas turísticas
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          {filteredTourismProposals.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
-              Todavía no hay propuestas cargadas en esta categoría.
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-                {visibleTourismProposals.map((servicio) => (
-                  <div
-                    key={servicio.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => {
-                      if (servicio.premium_activo) {
-                        void recordViewMore("servicios", String(servicio.id), servicio.nombre)
-                        router.push(`/servicios/${servicio.id}`)
-                        return
-                      }
-
-                      handleViewMoreClick(
-                        "servicios",
-                        String(servicio.id),
-                        servicio.nombre,
-                        () => setSelectedServicio(servicio)
-                      )
-                    }}
-                    onKeyDown={(event) =>
-                      handleCardKeyDown(event, () => {
-                        if (servicio.premium_activo) {
-                          void recordViewMore("servicios", String(servicio.id), servicio.nombre)
-                          router.push(`/servicios/${servicio.id}`)
-                          return
-                        }
-
-                        handleViewMoreClick(
-                          "servicios",
-                          String(servicio.id),
-                          servicio.nombre,
-                          () => setSelectedServicio(servicio)
-                        )
-                      })
-                    }
-                    className="group cursor-pointer overflow-hidden rounded-[20px] border border-white/80 bg-white/92 shadow-[0_16px_38px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                  >
-                    <div className="relative aspect-[4/3] bg-slate-100">
-                      {servicio.imagen ? (
-                        <OptimizedImage
-                          src={servicio.imagen}
-                          alt={servicio.nombre}
-                          sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                          className="object-cover transition duration-200 group-hover:scale-[1.03]"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center text-slate-400">
-                          <MapPin className="h-9 w-9" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-4">
-                      {servicio.categoria ? (
-                        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                          {servicio.categoria}
-                        </div>
-                      ) : null}
-                      <h3 className="line-clamp-2 text-base font-semibold leading-tight text-slate-900 sm:text-lg">
-                        {servicio.nombre}
-                      </h3>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {tourismProposalPageCount > 1 ? (
-                <div className="mt-7 text-center text-sm text-slate-500">
-                  La home muestra una tanda de 8 propuestas y la rota automáticamente cada 2 días.
-                </div>
-              ) : null}
-            </>
-          )}
-        </div>
-      </section>
-
-      <section
-        id="eventos"
-        ref={eventsSectionRef}
-        className="order-2 py-16"
-      >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">
-            <div className="mb-4 inline-flex rounded-full bg-sky-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700">
-              Hoy en las Sierras
-            </div>
-            <h2 className="text-4xl font-semibold tracking-tight text-slate-900 md:text-5xl">
-              Próximos eventos
-            </h2>
-            <p className="mt-4 text-xl text-slate-500">
-              Eventos, propuestas, promociones y más
-            </p>
-            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                href="/eventos"
-                className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
-              >
-                Ver todos los eventos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-
-          <div
-            className="flex items-stretch snap-x snap-mandatory gap-5 overflow-x-auto overscroll-x-contain pb-6 [scrollbar-color:rgba(6,95,70,0.35)_transparent] [scrollbar-width:thin] md:gap-7"
-            aria-label="Eventos destacados; deslizá hacia el costado para ver más"
-          >
-            {visibleEventos.map((event) => (
-              <div
-                key={event.id}
-                role="button"
-                tabIndex={0}
-                style={{ flex: "0 0 clamp(19rem, 31.5%, 31.5%)", minWidth: 0 }}
-                onClick={() =>
-                  handleViewMoreClick(
-                    "eventos",
-                    String(event.id),
-                    event.titulo,
-                    () => setSelectedEvento(event)
-                  )
-                }
-                onKeyDown={(eventKey) =>
-                  handleCardKeyDown(eventKey, () =>
-                    handleViewMoreClick(
-                      "eventos",
-                      String(event.id),
-                      event.titulo,
-                      () => setSelectedEvento(event)
-                    )
-                  )
-                }
-                className="flex snap-start cursor-pointer flex-col self-stretch overflow-hidden rounded-[20px] border border-emerald-800/18 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45),0_0_0_1px_rgba(72,110,82,0.05)] transition hover:-translate-y-1.5 hover:border-emerald-800/24 hover:shadow-[0_28px_60px_-30px_rgba(74,110,82,0.18),0_0_0_1px_rgba(72,110,82,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/35 md:rounded-[28px]"
-              >
-                {event.imagen && (
-                  <div className="relative aspect-[4/3] w-full overflow-hidden border-b border-slate-100 bg-[radial-gradient(circle_at_center,#ffffff_0%,#f8fafc_72%,#eef2f7_100%)]">
-                    <OptimizedImage
-                      src={event.imagen}
-                      alt={event.titulo}
-                      sizes="(max-width: 640px) 19rem, (max-width: 1024px) 46vw, 31vw"
-                      className="object-contain p-2 sm:p-3"
-                    />
-                  </div>
-                )}
-
-                <div className="flex flex-1 flex-col p-4 md:p-6">
-                  <div className="mb-2 flex items-center gap-2 text-xs text-blue-500 md:mb-4 md:text-lg">
-                    <CalendarDays className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
-                    <span>{formatEventDateRange(event.fecha, event.fecha_fin, event.fecha_solo_mes ?? false)}</span>
-                  </div>
-
-                  <div className="mb-2 inline-flex rounded-full bg-sky-50 px-2 py-1 text-[11px] font-semibold text-sky-700 md:mb-3 md:px-3 md:text-xs">
-                    {normalizeEventCategory(event.categoria)}
-                  </div>
-
-                  <h3 className="text-base font-semibold leading-tight text-slate-900 md:text-[22px]">
-                    {event.titulo}
-                  </h3>
-
-                  <a
-                    href={
-                      getGoogleMapsSearchUrl(
-                        event.titulo,
-                        event.ubicacion,
-                        event.localidad
-                      ) || "#"
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(clickEvent) => clickEvent.stopPropagation()}
-                    className="mt-2 line-clamp-2 block text-xs text-sky-700 transition hover:text-sky-800 md:text-sm"
-                  >
-                    {event.ubicacion}
-                  </a>
-
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -2201,7 +2149,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
 
       </div>
 
-      <section className="py-16">
+      <section className="sierras-about py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div>
@@ -2228,22 +2176,18 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                 </div>
               </div>
             ) : (
-              <div className="flex min-h-[320px] items-center justify-center rounded-[28px] border border-slate-200 bg-slate-100 p-8 text-center shadow-lg">
-                <div>
-                  <MapPin className="mx-auto h-10 w-10 text-slate-400" />
-                  <p className="mt-4 text-lg font-medium text-slate-600">
-                    Imagen principal pendiente
-                  </p>
-                  <p className="mt-2 text-sm text-slate-500">
-                    Cargala desde el panel admin cuando la tengas pronta.
-                  </p>
-                </div>
+              <div className="flex min-h-[260px] flex-col items-center justify-center rounded-[28px] border border-white/60 bg-white/40 p-8 text-center">
+                <MapPin className="h-12 w-12 text-emerald-800/60" />
+                <p className="mt-4 text-2xl font-semibold text-emerald-950">Descubrí las sierras</p>
+                <p className="mt-3 max-w-sm text-base leading-7 text-slate-600">Lugares, experiencias y propuestas de nuestra región, en un solo lugar.</p>
               </div>
             )}
           </div>
         </div>
       </section>
 
+
+      </main>
       <footer id="contacto" className="mt-6 border-t border-slate-200/80 bg-white/80 py-14 backdrop-blur">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 sm:px-6 md:grid-cols-2 lg:px-8">
           <div>
@@ -2257,13 +2201,19 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                 className="h-10 w-auto"
               />
               <span className="text-[28px] font-semibold">
-                Cartelera online de las sierras
+                Hola Sierras
               </span>
             </div>
 
             <p className="mt-6 text-lg leading-8 text-slate-500">
-              Todo lo que pasa en Aiguá, Mariscala y la región.
+              Tu punto de partida para descubrir las sierras de Uruguay.
             </p>
+            <nav aria-label="Más sobre la comunidad" className="mt-6 flex flex-wrap gap-x-5 gap-y-3 text-sm text-emerald-900">
+              <Link href="/comercios" className="hover:underline">Comercios</Link>
+              <Link href="/servicios" className="hover:underline">Servicios</Link>
+              <Link href="/cursos" className="hover:underline">Cursos y clases</Link>
+              <Link href="/instituciones" className="hover:underline">Instituciones</Link>
+            </nav>
 
           </div>
 
@@ -2273,7 +2223,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
             <div className="mt-6 space-y-4 text-lg text-slate-500">
               <div className="flex items-center gap-3">
                 <MapPin className="h-5 w-5 text-slate-400" />
-                <span>Aiguá, Mariscala y la región</span>
+                <span>Sierras de Uruguay</span>
               </div>
 
               <div className="flex flex-wrap gap-3 pt-2">

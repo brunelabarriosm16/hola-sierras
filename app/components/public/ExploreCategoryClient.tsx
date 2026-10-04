@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
+import { SIERRAS_DESTINATIONS, matchesDestination, type DestinationFilter } from "../../lib/destinations"
 import { ArrowRight, BedDouble, CalendarDays, Car, ImageIcon, MapPin, MessageCircle, Navigation, Phone, Wifi } from "lucide-react"
 import { ContactActionLink } from "../ContactActionLink"
 import { OptimizedImage } from "../OptimizedImage"
@@ -42,15 +43,15 @@ export type ExploreConfig = {
   types: Array<{ value: string; label: string }>
 }
 
-const LOCATIONS = ["Todos", "Aiguá", "Mariscala"] as const
+const LOCATIONS = ["todos", ...SIERRAS_DESTINATIONS] as const
 
 export function ExploreCategoryClient({ config, items }: { config: ExploreConfig; items: ExploreItem[] }) {
   const router = useRouter()
-  const [location, setLocation] = useState<(typeof LOCATIONS)[number]>("Todos")
+  const [location, setLocation] = useState<DestinationFilter>("todos")
   const [type, setType] = useState("todos")
   const [selectedItem, setSelectedItem] = useState<ExploreItem | null>(null)
   const filteredItems = useMemo(() => items.filter((item) =>
-    (location === "Todos" || item.location.toLocaleLowerCase("es") === location.toLocaleLowerCase("es")) &&
+    matchesDestination(item.location, location) &&
     (type === "todos" || item.subtype === type)
   ), [items, location, type])
 
@@ -178,7 +179,7 @@ export function ExploreCategoryClient({ config, items }: { config: ExploreConfig
       </header>
 
       <div className="mt-9 space-y-5 rounded-[28px] border border-emerald-900/10 bg-white/85 p-5 shadow-sm backdrop-blur sm:p-6">
-        <FilterGroup label="Localidad" options={LOCATIONS.map((value) => ({ value, label: value }))} value={location} onChange={(value) => setLocation(value as typeof location)} />
+        <FilterGroup label="Destino" options={LOCATIONS.map((value) => ({ value, label: value === "todos" ? "Todas las sierras" : value }))} value={location} onChange={(value) => setLocation(value as DestinationFilter)} />
         <FilterGroup label="Tipo" options={[{ value: "todos", label: "Todos" }, ...config.types]} value={type} onChange={setType} />
       </div>
 

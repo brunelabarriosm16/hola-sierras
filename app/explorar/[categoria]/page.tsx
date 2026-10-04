@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic"
 const CONFIG: Record<string, ExploreConfig> = {
   "que-hacer": { title: "Qué hacer", description: "Paseos, naturaleza y experiencias para disfrutar las sierras.", types: [{ value: "paseos", label: "Paseos" }, { value: "naturaleza", label: "Naturaleza" }, { value: "experiencias", label: "Experiencias" }] },
   "donde-comer": { title: "Dónde comer", description: "Restaurantes, cafeterías y opciones de comida para llevar.", types: [{ value: "restaurantes", label: "Restaurantes" }, { value: "cafeterias", label: "Cafeterías" }, { value: "para-llevar", label: "Comida para llevar" }] },
-  alojamientos: { title: "Alojamientos", description: "Lugares para quedarse en Aiguá, Mariscala y la región.", types: [{ value: "hoteles", label: "Hoteles" }, { value: "posadas", label: "Posadas" }, { value: "cabanas", label: "Cabañas" }, { value: "campings", label: "Campings" }] },
+  alojamientos: { title: "Alojamientos", description: "Lugares para quedarse en las sierras de Uruguay.", types: [{ value: "hoteles", label: "Hoteles" }, { value: "posadas", label: "Posadas" }, { value: "cabanas", label: "Cabañas" }, { value: "campings", label: "Campings" }] },
   eventos: { title: "Eventos", description: "Próximos eventos y propuestas de la región.", types: [{ value: "proximos", label: "Próximos eventos" }] },
 }
 

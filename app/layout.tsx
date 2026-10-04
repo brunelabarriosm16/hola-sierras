@@ -6,7 +6,7 @@ import "./globals.css"
 
 export const metadata: Metadata = {
   title: "Cartelera online de las sierras",
-  description: "Todo lo que pasa en Aiguá, Mariscala y la región.",
+  description: "Todo lo que pasa en las sierras de Uruguay.",
   icons: {
     icon: "/HolaSierras.png",
     shortcut: "/HolaSierras.png",

@@ -1,0 +1,12 @@
+.sierras-home section[id], .sierras-home #descubrir { scroll-margin-top: 24px; }
+.sierras-weather { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; max-width: 1216px; margin: 24px auto 0; padding: 20px 24px; border: 1px solid #064e3b1a; border-radius: 24px; background: #fbf8f1eb; color: #475569; font-size: 13px; }
+.sierras-weather-label, .sierras-weather-locations, .sierras-weather-locations > span { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.sierras-weather-locations { gap: 24px; }
+.sierras-weather strong { color: #065f46; }
+.sierras-empty { padding: 28px; text-align: center; color: #475569; }
+@media (max-width: 1279px) { .sierras-weather { margin-left: 24px; margin-right: 24px; } }
+@media (max-width: 640px) { .sierras-weather { margin-left: 16px; margin-right: 16px; padding: 20px; } .sierras-weather-locations { gap: 16px; } .sierras-weather-condition { display: none; } }
+
+.sierras-weather-locations { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; gap: 20px; }
+.sierras-weather-locations > span { align-content: start; }
+@media (min-width: 1024px) { .sierras-weather-locations { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

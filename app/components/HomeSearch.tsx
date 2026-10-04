@@ -85,9 +85,9 @@ export function HomeSearch() {
         </div>
         <button type="submit" className="h-14 rounded-2xl bg-emerald-800 px-8 text-base font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 sm:h-16">Buscar</button>
       </form>
-      <div className="mt-4 flex flex-wrap justify-center gap-2" aria-label="Búsquedas rápidas">
+      <div className="mx-auto mt-7 grid max-w-3xl grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-4 sm:gap-4" aria-label="Búsquedas rápidas">
         {QUICK_LINKS.map((item) => (
-          <button key={item.href} type="button" onClick={() => router.push(item.href)} className="rounded-full border border-emerald-950/15 bg-white/75 px-3.5 py-2 text-xs font-semibold text-emerald-950 shadow-sm backdrop-blur transition hover:bg-white sm:text-sm">{item.label}</button>
+          <button key={item.href} type="button" onClick={() => router.push(item.href)} className="min-h-12 rounded-full border border-emerald-950/15 bg-white/75 px-4 py-3 text-sm font-semibold text-emerald-950 shadow-sm backdrop-blur transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700">{item.label}</button>
         ))}
       </div>
     </div>
