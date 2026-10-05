@@ -455,22 +455,18 @@ function LogoGridCard({
   image,
   name,
   fallback,
-  showName = true,
+  subtitle,
   onClick,
   onKeyDown,
 }: {
   image: string | null
   name: string
   fallback: ReactNode
-  showName?: boolean
+  subtitle: string
   onClick: () => void
   onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 }) {
   const [imageFailed, setImageFailed] = useState(false)
-
-  const imageFrameClass = showName
-    ? "relative flex h-full max-h-32 w-full items-center justify-center overflow-hidden rounded-[14px] bg-slate-50"
-    : "relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden rounded-[14px] bg-slate-50"
 
   return (
     <div
@@ -478,27 +474,27 @@ function LogoGridCard({
       tabIndex={0}
       onClick={onClick}
       onKeyDown={onKeyDown}
-      className="group flex aspect-square w-full cursor-pointer flex-col items-center justify-center rounded-[18px] border border-white/80 bg-white/92 p-2 text-center shadow-[0_14px_34px_-26px_rgba(15,23,42,0.5)] transition hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_22px_46px_-28px_rgba(15,23,42,0.4)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 sm:p-3"
+      className="group flex w-full min-w-0 cursor-pointer flex-col items-center rounded-2xl px-2 py-3 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-800 focus-visible:ring-offset-4"
       aria-label={`Ver ficha de ${name}`}
     >
-      <div className={imageFrameClass}>
+      <div className="relative flex aspect-square w-full max-w-[148px] items-center justify-center overflow-hidden rounded-2xl bg-white/50 shadow-[0_5px_16px_-10px_rgba(15,50,35,0.25)] transition duration-200 group-hover:-translate-y-1 group-hover:bg-white/70 motion-reduce:transform-none motion-reduce:transition-none sm:max-w-[160px]">
         {image && !imageFailed ? (
           <OptimizedImage
             src={image}
             alt={name}
-            sizes="(max-width: 768px) 33vw, 20vw"
-            className="object-contain p-1 transition duration-200 group-hover:scale-[1.03] sm:p-2"
+            sizes="(max-width: 640px) 148px, 160px"
+            className="object-contain p-2"
             onError={() => setImageFailed(true)}
           />
         ) : (
           fallback
         )}
       </div>
-      {showName ? (
-        <span className="mt-2 line-clamp-2 text-[11px] font-semibold leading-tight text-slate-700 sm:text-sm">
-          {name}
-        </span>
-      ) : null}
+      <span className="mt-4 max-w-[200px] text-sm font-semibold leading-snug text-slate-900 sm:text-base">
+        {name}
+      </span>
+      <span className="mt-1.5 text-xs leading-relaxed text-emerald-950/70">{subtitle}</span>
+
     </div>
   )
 }
@@ -1893,13 +1889,13 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
             </div>
           ) : (
             <>
-              <div className="mx-auto grid max-w-5xl grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+              <div className="mx-auto grid max-w-5xl grid-cols-2 gap-x-5 gap-y-7 sm:grid-cols-3 sm:gap-8 lg:grid-cols-4 lg:gap-x-12 lg:gap-y-10">
                 {visibleDirectoryItems.map((listing) => (
                   <LogoGridCard
                     key={listing.key}
                     image={listing.image}
                     name={listing.nombre}
-                    showName={false}
+                    subtitle={[listing.type === "comercio" ? "Comercio" : "Servicio", listing.item.localidad].filter(Boolean).join(" · ")}
                     fallback={
                       listing.type === "comercio" ? (
                         <Building2 className="h-8 w-8 text-slate-400 sm:h-10 sm:w-10" />
@@ -1978,7 +1974,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
               </div>
               {directoryPageCount > 1 ? (
                 <div className="mt-7 text-center text-sm text-slate-500">
-                  La home muestra una tanda combinada de comercios y servicios, y la rota automáticamente cada 2 días.
+                  Descubrí más comercios y profesionales en el directorio de la región.
                 </div>
               ) : null}
             </>
