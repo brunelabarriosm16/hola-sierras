@@ -1812,32 +1812,30 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                     )
                   )
                 }
-                className="flex snap-start cursor-pointer flex-col self-stretch overflow-hidden rounded-[20px] border border-emerald-800/18 bg-white/95 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.45),0_0_0_1px_rgba(72,110,82,0.05)] transition hover:-translate-y-1.5 hover:border-emerald-800/24 hover:shadow-[0_28px_60px_-30px_rgba(74,110,82,0.18),0_0_0_1px_rgba(72,110,82,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/35 md:rounded-[28px]"
+                className="group flex snap-start cursor-pointer flex-col items-center self-stretch rounded-2xl px-3 py-4 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/50"
               >
                 {event.imagen && (
-                  <div className="relative aspect-[4/3] w-full overflow-hidden border-b border-slate-100 bg-[radial-gradient(circle_at_center,#ffffff_0%,#f8fafc_72%,#eef2f7_100%)]">
+                  <div className="relative aspect-[4/3] w-full">
                     <OptimizedImage
                       src={event.imagen}
                       alt={event.titulo}
                       sizes="(max-width: 640px) 19rem, (max-width: 1024px) 46vw, 31vw"
-                      className="object-contain p-2 sm:p-3"
+                      className="object-contain drop-shadow-[0_8px_10px_rgba(25,60,40,0.16)] transition-transform duration-200 group-hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none"
                     />
                   </div>
                 )}
 
-                <div className="flex flex-1 flex-col p-4 md:p-6">
-                  <div className="mb-2 flex items-center gap-2 text-xs text-blue-500 md:mb-4 md:text-lg">
-                    <CalendarDays className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
-                    <span>{formatEventDateRange(event.fecha, event.fecha_fin, event.fecha_solo_mes ?? false)}</span>
-                  </div>
-
-                  <div className="mb-2 inline-flex rounded-full bg-sky-50 px-2 py-1 text-[11px] font-semibold text-sky-700 md:mb-3 md:px-3 md:text-xs">
+                <div className="flex w-full flex-1 flex-col items-center px-2 pt-6 pb-2">
+                  <span className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-900/70">
                     {normalizeEventCategory(event.categoria)}
-                  </div>
-
-                  <h3 className="text-base font-semibold leading-tight text-slate-900 md:text-[22px]">
+                  </span>
+                  <h3 className="max-w-xs text-lg font-semibold leading-snug text-slate-900 md:text-xl">
                     {event.titulo}
                   </h3>
+                  <div className="mt-3 flex items-center justify-center gap-2 text-sm text-emerald-900">
+                    <CalendarDays className="h-4 w-4 shrink-0" />
+                    <span>{formatEventDateRange(event.fecha, event.fecha_fin, event.fecha_solo_mes ?? false)}</span>
+                  </div>
 
                   <a
                     href={
@@ -1850,7 +1848,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(clickEvent) => clickEvent.stopPropagation()}
-                    className="mt-2 line-clamp-2 block text-xs text-sky-700 transition hover:text-sky-800 md:text-sm"
+                    className="mt-2 line-clamp-2 text-sm text-slate-700 underline-offset-4 transition hover:text-emerald-950 hover:underline"
                   >
                     {event.ubicacion}
                   </a>
