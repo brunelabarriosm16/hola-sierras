@@ -1633,43 +1633,36 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
             <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
               Alojamientos y experiencias para disfrutar las sierras a tu ritmo.
             </p>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-2" role="group" aria-label="Filtrar propuestas por destino">
-              <span className="mr-2 text-xs font-semibold uppercase tracking-widest text-emerald-900">Destino</span>
-              {(["todos", ...SIERRAS_DESTINATIONS] as const).map((destination) => (
-                <button key={destination} type="button" onClick={() => setDestinationFilter(destination)} aria-pressed={destinationFilter === destination}
-                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${destinationFilter === destination ? "border-emerald-800 bg-emerald-800 text-white" : "border-emerald-800/15 bg-white/75 text-emerald-900 hover:bg-white"}`}>
-                  {destination === "todos" ? "Todas las sierras" : destination}
-                </button>
-              ))}
-            </div>
-            <div className="mt-4 flex flex-wrap justify-center gap-2" aria-label="Filtrar propuestas turísticas">
+            <div className="tourism-filters">
+              <label className="tourism-destination">
+                <span>¿Dónde?</span>
+                <select value={destinationFilter} onChange={(event) => setDestinationFilter(event.target.value as DestinationFilter)}>
+                  <option value="todos">Todas las sierras</option>
+                  {SIERRAS_DESTINATIONS.map((destination) => <option key={destination} value={destination}>{destination}</option>)}
+                </select>
+              </label>
+            <div className="tourism-types" role="group" aria-label="Filtrar propuestas turísticas">
               {([
                 ["todos", "Todos"],
                 ["alojamientos", "Alojamientos"],
-                ["actividades", "Actividades para hacer"],
+                ["actividades", "Actividades"],
               ] as const).map(([value, label]) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setTourismFilter(value)}
                   aria-pressed={tourismFilter === value}
-                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  className={`min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition ${
                     tourismFilter === value
                       ? "border-emerald-800 bg-emerald-800 text-white shadow-sm"
-                      : "border-emerald-800/15 bg-white/75 text-emerald-900 hover:bg-white"
+                      : "border-transparent bg-transparent text-emerald-900 hover:bg-white/40"
                   }`}
                 >
                   {label}
                 </button>
               ))}
             </div>
-            <Link
-              href="/servicios?tipo=turismo"
-              className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-800/20 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:border-emerald-800/35 hover:bg-emerald-50"
-            >
-              Ver todas las propuestas turísticas
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            </div>
           </div>
 
           {filteredTourismProposals.length === 0 ? (
@@ -1678,7 +1671,7 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+              <div className="tourism-proposal-list">
                 {visibleTourismProposals.map((servicio) => (
                   <div
                     key={servicio.id}
@@ -1714,15 +1707,15 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                         )
                       })
                     }
-                    className="group cursor-pointer overflow-hidden rounded-[20px] border border-white/80 bg-white/92 shadow-[0_16px_38px_-28px_rgba(15,23,42,0.45)] transition hover:-translate-y-1 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    className="tourism-proposal group cursor-pointer rounded-2xl text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-800 focus-visible:ring-offset-4"
                   >
-                    <div className="relative aspect-[4/3] bg-slate-100">
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-emerald-950/5 shadow-[0_8px_24px_-12px_rgba(15,50,35,0.3)]">
                       {servicio.imagen ? (
                         <OptimizedImage
                           src={servicio.imagen}
                           alt={servicio.nombre}
-                          sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                          className="object-cover transition duration-200 group-hover:scale-[1.03]"
+                          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 340px"
+                          className="object-cover transition duration-200 group-hover:scale-[1.03] motion-reduce:transform-none motion-reduce:transition-none"
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center text-slate-400">
@@ -1730,15 +1723,17 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
                         </div>
                       )}
                     </div>
-                    <div className="p-4">
+                    <div className="px-3 pt-5 pb-2">
                       {servicio.categoria ? (
-                        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                        <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-900/75">
                           {servicio.categoria}
                         </div>
                       ) : null}
                       <h3 className="line-clamp-2 text-base font-semibold leading-tight text-slate-900 sm:text-lg">
                         {servicio.nombre}
                       </h3>
+                      {servicio.localidad ? <p className="mt-2 flex items-center justify-center gap-1.5 text-sm text-slate-600"><MapPin className="h-3.5 w-3.5" />{servicio.localidad}</p> : null}
+                      <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-emerald-900">Conocer propuesta <ArrowRight className="h-4 w-4" /></span>
                     </div>
                   </div>
                 ))}
@@ -1750,6 +1745,11 @@ export function HomePage({ initialData }: { initialData: HomePageData }) {
               ) : null}
             </>
           )}
+          <div className="mt-10 text-center">
+            <Link href="/servicios?tipo=turismo" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-emerald-900 underline-offset-4 hover:underline">
+              Explorar todas las propuestas <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </section>
 

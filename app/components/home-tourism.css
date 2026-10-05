@@ -10,3 +10,14 @@
 .sierras-weather-locations { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; gap: 20px; }
 .sierras-weather-locations > span { align-content: start; }
 @media (min-width: 1024px) { .sierras-weather-locations { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+.tourism-filters { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 24px; margin: 28px auto 40px; }
+.tourism-destination { display: flex; align-items: center; gap: 12px; color: #064e3b; font-size: 13px; font-weight: 600; }
+.tourism-destination select { min-height: 44px; max-width: 100%; border: 1px solid #065f4626; border-radius: 12px; padding: 10px 16px; background: #ffffff50; color: #064e3b; font: inherit; cursor: pointer; }
+.tourism-types { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 4px; border-radius: 28px; background: #ffffff30; }
+.tourism-filters :is(select, button):focus-visible { outline: 2px solid #065f46; outline-offset: 4px; }
+.tourism-proposal-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 36px 28px; }
+.tourism-proposal { flex: 0 1 340px; min-width: 0; width: 100%; }
+@media (min-width: 640px) { .tourism-proposal { flex-basis: calc((100% - 28px) / 2); max-width: 340px; } }
+@media (min-width: 1024px) { .tourism-proposal { flex-basis: calc((100% - 56px) / 3); } }
+@media (max-width: 639px) { .tourism-filters { flex-direction: column; gap: 16px; } .tourism-types { gap: 2px; } .tourism-types button { padding-left: 12px; padding-right: 12px; font-size: 13px; } }
