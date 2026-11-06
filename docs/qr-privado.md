@@ -22,6 +22,12 @@ App Store. Android abre Google Play; iPhone/iPad abre App Store; los dispositivo
 no detectados muestran ambas opciones. También permite QR para un enlace fijo.
 Generar y descargar las imágenes desde el dominio definitivo.
 
+En producción, los QR y los enlaces copiados usan
+`https://sirecomiendo.holasierras.uy/q/UUID`, incluso cuando se abre el panel
+desde `holasierras.uy/qrsir01`. El subdominio está conectado al mismo Worker
+de Cloudflare. Los enlaces anteriores siguen usando los mismos contadores.
+Para imprimir con SiRecomiendo al principio, volver a descargar el PNG.
+
 Cada apertura GET a `/q/UUID` incrementa atómicamente el contador y redirige.
 Se muestran aperturas totales y por dispositivo, no personas únicas ni
 instalaciones. HEAD, prefetch y algunos bots conocidos no suman. Los enlaces

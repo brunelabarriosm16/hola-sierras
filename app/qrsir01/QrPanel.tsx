@@ -14,7 +14,10 @@ function QrCard({ link }: { link: Link }) {
   const [url, setUrl] = useState("")
   useEffect(() => {
     let active = true
-    const trackedUrl = `${window.location.origin}/q/${link.id}`
+    const qrOrigin = ["holasierras.uy", "www.holasierras.uy", "sirecomiendo.holasierras.uy"].includes(window.location.hostname)
+      ? "https://sirecomiendo.holasierras.uy"
+      : window.location.origin
+    const trackedUrl = `${qrOrigin}/q/${link.id}`
     QRCode.toDataURL(trackedUrl, { width: 1000, margin: 4, errorCorrectionLevel: "M" })
       .then(value => { if (active) { setImage(value); setUrl(trackedUrl) } })
       .catch(() => { if (active) setFailed(true) })
