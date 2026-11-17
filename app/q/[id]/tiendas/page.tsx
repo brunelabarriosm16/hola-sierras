@@ -3,7 +3,11 @@ import { notFound } from "next/navigation"
 import { getSupabaseAdmin } from "@/app/lib/supabaseAdmin"
 
 export const dynamic = "force-dynamic"
-export const metadata: Metadata = { title: "Descargar la app", robots: { index: false, follow: false } }
+export const metadata: Metadata = {
+  title: "Descargar la app",
+  description: null,
+  robots: { index: false, follow: false },
+}
 
 export default async function StoresPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
